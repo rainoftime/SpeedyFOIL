@@ -1,3 +1,7 @@
+# eclipse
+.project
+foil6
+
 # Compiled Object files
 *.slo
 *.lo
