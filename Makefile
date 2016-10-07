@@ -1,40 +1,23 @@
-# Vanilla makefile for distribution
-# You may need to set local c compiler options
+
+SRC_DIR = src/
+OUT_DIR = _build/
 
 CFLAGS = -g
- 
-.SUFFIXES: .o .c .l .ln
 
-.c.o:	Makefile defns.i extern.i
-#	lint -c $<
-	cc $(CFLAGS) -c $<
+SRC_Names =	global.c main.c input.c output.c state.c\
+ 	literal.c evaluatelit.c search.c determinate.c order.c\
+ 	join.c utility.c finddef.c interpret.c prune.c constants.c
 
-.c.ln:
-	lint -c $<
+SRC = $(addprefix $(SRC_DIR), $(SRC_Names))
+OBJ = $(addprefix $(OUT_DIR), $(notdir $(SRC:.c=.o)))
 
-SRC =	global.c main.c input.c output.c state.c\
-	literal.c evaluatelit.c search.c determinate.c order.c\
-	join.c utility.c finddef.c interpret.c prune.c constants.c
+foil: $(OBJ) Makefile
+	cc -g -o foil $(OBJ) -lm
 
-OBJ =	global.o main.o input.o output.o state.o\
-	literal.o evaluatelit.o search.o determinate.o order.o\
-	join.o utility.o finddef.o interpret.o prune.o constants.o
+$(OUT_DIR)%.o: $(SRC_DIR)%.c
+	$(CC) $(CFLAGS) -c $< -o $@
 
-LINT =	global.ln main.ln input.ln output.ln state.ln\
-	literal.ln evaluatelit.ln search.ln determinate.ln order.ln\
-	join.ln utility.ln finddef.ln interpret.ln prune.ln constants.ln
+$(OBJ): $(SRC_DIR)/defns.i $(SRC_DIR)/extern.i
 
-
-foil:   $(OBJ) Makefile
-#	lint -x $(LINT) -lm >,nittygritty
-	cc -g -o foil6 $(OBJ) -lm
-
-
-foilgt:  $(SRC) defns.i Makefile
-	cat defns.i $(SRC) >.temp
-	egrep -v '"defns.i"|"extern.i"' .temp >foilgt.c
-	cc -O3 -o foil6 foilgt.c -lm
-	rm .temp foilgt.c
-
-
-$(OBJ): defns.i extern.i
+clean:
+	rm $(OBJ)
