@@ -1,6 +1,15 @@
 # eclipse
 .project
+.autotools
+.cproject
+.settings/
+_build/
 foil6
+foil
+
+# temporary files
+*.cpp~
+*.i~
 
 # Compiled Object files
 *.slo
