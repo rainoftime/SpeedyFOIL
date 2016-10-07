@@ -85,7 +85,7 @@ void get_type_name(att_info attribute, FILE *fp);
 /*        FOIL-style one.                                                    */
 /*****************************************************************************/
 
-main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     extern char *optarg;
     extern int optind;

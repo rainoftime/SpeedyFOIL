@@ -12,7 +12,7 @@ Var SDNCommonV;
 Boolean
 	IGNORE_NEG = false,
 	USERCUSTOM = false, 
-  SDNCONSTRAINT = false, 
+	SDNCONSTRAINT = false,
 	NEGLITERALS   = true,	/* negated literals ok */
 	NEGEQUALS     = true,	/* negated equality literals ok */
 	UNIFORMCODING = false,	/* uniform coding of literals */

@@ -1,16 +1,15 @@
 
-
-#incldue <vector>
+#include <vector>
 
 
 struct Predicate {
   int pid;
   int arity;
-  vector<int> vdom;
+  std::vector<int> vdom;
   
 };
 
 struct Clause {
   Predicate hd;
-  vector<Predicate> vbody;
+  std::vector<Predicate> vbody;
 };
