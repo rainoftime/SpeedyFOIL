@@ -935,7 +935,7 @@ float  Info(int P, int T)
 Boolean  MissingVal(Relation R, Var *A, Tuple T)
 /*       ----------       */
 {
-    register Var i, V;
+    Var i, V;
 
     ForEach(i, 1, R->Arity)
     {
@@ -1203,8 +1203,8 @@ int  MissingAndSort(Var V, int Fp, int Lp)
 void  Quicksort(Tuple *Vec, int Fp, int Lp, Var V)
 /*    ---------  */
 {
-    register int Middle, i;
-    register float Thresh;
+    int Middle, i;
+    float Thresh;
 
     if ( Fp < Lp )
     {

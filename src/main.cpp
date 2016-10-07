@@ -53,9 +53,14 @@ void readSDNConfig(const char* fName)
     ++i;
   }
 
+
   sdnConfig.Number = i;
   printf("sdn config: ");
-  while(i--) printf("%s %d", sdnConfig.RelationNames[i], sdnConfig.BodyV[i]);
+  while(i--) {
+	  printf("%s %d", sdnConfig.RelationNames[i], sdnConfig.BodyV[i]);
+	  //auto pr = [](const char*p, int x){ printf("%s %d", p, x); };
+	  //pr( sdnConfig.RelationNames[i], sdnConfig.BodyV[i] );
+  }
   printf("\n");
   
   fclose(fin);

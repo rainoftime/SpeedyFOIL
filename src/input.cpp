@@ -647,8 +647,8 @@ void  DuplicateTuplesCheck(Relation R)
 int  CountDuplicates(Tuple *T, int N, int Left, int Right)
 /*   ---------------  */
 {
-    register int	i, j, last, first, swap, count=0;
-    register Tuple	temp, comp, other;
+    int	i, j, last, first, swap, count=0;
+    Tuple	temp, comp, other;
 
     if ( Left >= Right ) return 0;
 
@@ -837,8 +837,8 @@ Index  MakeIndex(Tuple *T, int N, Relation R)
 char  ReadName(char *s)
 /*    ---------  */
 {
-    register char	*Sp = s;
-    register int	c;
+    char	*Sp = s;
+    int	c;
 
     /*  Skip to first non-space character  */
 
