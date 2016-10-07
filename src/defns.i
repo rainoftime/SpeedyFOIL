@@ -128,7 +128,7 @@ struct _lit_rec
 	   
 struct _rel_rec
 {
-	char		*Name;
+	const char		*Name;
 	int		Arity,		/* number of arguments */
 			NKeys,		/* number of keys (0=all ok) */
 			*Key,		/* keys, each packed in an int */
@@ -235,8 +235,8 @@ struct _var_rec
 #define  Encode(n)		Except(AllTuples, n)
 
 #define  Nil			0
-#define  false			0 
-#define  true			1 
+/* #define  false			0  */
+/* #define  true			1  */
 #define  Max(a,b)		( (a)>(b) ? a : b ) 
 #define  Min(a,b)		( (a)<(b) ? a : b ) 
 
@@ -308,9 +308,9 @@ struct _var_rec
 	/* main.c */
 
 int main(int Argc, char *Argv[]);
-Boolean InSDNConfig(char* RelName);
-Var GetSDNConfigBodyV(char* RelName);
-void readSDNConfig(char* fName);
+Boolean InSDNConfig(const char* RelName);
+Var GetSDNConfigBodyV(const char* RelName);
+void readSDNConfig(const char* fName);
 void initialize_usercustom();
 
 	/* utility.c */
@@ -330,13 +330,13 @@ Tuple	  *ReadTuples(Relation R, Boolean Pos);
 Relation  ReadRelation();
 void	  ReadRelations();
 int	  FindType(char *N);
-char	  *CopyString(char *s);
-void	  Error();
+char	  *CopyString(const char *s);
+void	  Error(int,const char* s1=NULL, const char* s2=NULL);
 void	  DuplicateTuplesCheck(Relation R);
 int	  CountDuplicates(Tuple *T, int N, int Left, int Right);
 Boolean	  SymmetryCheck(Relation R);
 char	  ReadName(char *s);
-Const	  FindConstant(char *N, Boolean MustBeThere);
+Const	  FindConstant(const char *N, Boolean MustBeThere);
 int	  Number(Tuple *T);
 void	  CheckTypeCompatibility();
 Boolean	  CommonValue(int N1, Const *V1, int N2, Const *V2);
@@ -376,7 +376,7 @@ void	  EvaluateLiteral(Relation R, Var *A, float LitBits, Boolean *Prune);
 void	  PrepareForScan(Relation R, Var *A);
 float	  NegThresh(int P, int P1);
 Boolean	  TerminateScan(Relation R, Var *A);
-Boolean	  Satisfies(int RN, Const V, Const W, Tuple Case);
+Boolean	  Satisfies(Relation R, Const V, Const W, Tuple Case);
 void	  CheckForPrune(Relation R, Var *A);
 void	  CheckNewVars(Tuple Case);
 float	  Worth(int N, int P, int T, int UV);

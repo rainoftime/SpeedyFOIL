@@ -32,7 +32,7 @@ void initialize_usercustom()
 	}
 }
 
-void readSDNConfig(char* fName)
+void readSDNConfig(const char* fName)
 {
   FILE* fin;
   char buf[1000];
@@ -61,7 +61,7 @@ void readSDNConfig(char* fName)
   fclose(fin);
 }
 
-Boolean InSDNConfig (char* RelName)
+Boolean InSDNConfig (const char* RelName)
 {
 	int i = 0;
 	for(i = 0; i < sdnConfig.Number; ++i) {
@@ -73,7 +73,7 @@ Boolean InSDNConfig (char* RelName)
 
 }
 
-Var GetSDNConfigBodyV(char* RelName)
+Var GetSDNConfigBodyV(const char* RelName)
 {
 	int i = 0;
 	for(i = 0; i < sdnConfig.Number; ++i) {
@@ -290,7 +290,11 @@ int main(int Argc, char *Argv[])
 
 	if ( V == 0 )
 	{
-	    Variable[0]->Name = "_";
+	    //Variable[0]->Name = "_";
+		Variable[0]->Name = Alloc(2, char);
+		Variable[0]->Name[0] = '-';
+		Variable[0]->Name[1] = '\0';
+
 	}
 	else
 	if ( V <= 26 )

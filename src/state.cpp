@@ -20,7 +20,7 @@ void  OriginalState(Relation R)
 {
 	int		i, j, WorldSize=1, TupleArity, NegTuples, Remaining;
 	Tuple	Case, *Scan;
-	double	drand48();
+	//double	drand48();
 
 	if ( ! LogFact )
 	{
@@ -254,7 +254,7 @@ void  RandomTuple(Relation R, Tuple Result)
 {
     int i, v;
     TypeInfo T;
-    double drand48();
+    //double drand48();
 
     ForEach(i, 1, R->Arity)
     {
@@ -290,7 +290,7 @@ void  FormNewState(Relation R, Boolean RSign, Var *A, int NewSize)
 	/*  Prepare for calls to Satisfies()  */
 
 	BuiltIn = true;
-	RN = (int) R->Pos;
+	//RN = (int) R->Pos;
 	if ( HasConst(R) )
 	{
 	    GetParam(&A[2], &X2);
@@ -322,7 +322,7 @@ void  FormNewState(Relation R, Boolean RSign, Var *A, int NewSize)
     {
         if ( MissingValue(R,A,Case) ) continue;
 
-	Match = ( BuiltIn ? Satisfies(RN, A[1], X2, Case) :
+	Match = ( BuiltIn ? Satisfies(R, A[1], X2, Case) :
 	          Join(R->Pos, R->PosIndex, A, Case, N, ! RSign) );
 	NotNegated = RSign != 0;
 	if ( Match != NotNegated ) continue;

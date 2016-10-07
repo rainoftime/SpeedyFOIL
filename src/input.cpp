@@ -907,7 +907,7 @@ char  ReadName(char *s)
 	/*  Find a constant using binary chop search  */
 
 
-Const  FindConstant(char *N, Boolean MustBeThere)
+Const  FindConstant(const char *N, Boolean MustBeThere)
 /*     ------------  */
 {
     int	i, Hi=MaxConst+1, Lo=1, Differ=1;
@@ -1020,22 +1020,22 @@ int  Number(Tuple *T)
 
 
 
-char  *CopyString(char *s)
+char  *CopyString(const char *s)
 /*     ----------  */
 {
-    char *new;
+    char * newstr;
     int l;
 
     l = strlen(s) + 1;
-    new = Alloc(l, char);
-    memcpy(new, s, l);
+    newstr = Alloc(l, char);
+    memcpy(newstr, s, l);
 
-    return new;
+    return newstr;
 }
 
 
 
-void  Error(int n, char *s1, char *s2)
+void  Error(int n, const char *s1, const char *s2)
 /*    -----  */
 {
     switch ( n )

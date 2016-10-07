@@ -1,20 +1,20 @@
 
+CC = /usr/bin/clang++
 SRC_DIR = src/
 OUT_DIR = _build/
 
-CFLAGS = -g
+CFLAGS = -g 
 
-SRC_Names =	global.c main.c input.c output.c state.c\
- 	literal.c evaluatelit.c search.c determinate.c order.c\
- 	join.c utility.c finddef.c interpret.c prune.c constants.c
+SRC_Names = global main input output state literal evaluatelit search determinate order \
+ 	join utility finddef interpret prune constants
 
-SRC = $(addprefix $(SRC_DIR), $(SRC_Names))
-OBJ = $(addprefix $(OUT_DIR), $(notdir $(SRC:.c=.o)))
+SRC = $(addprefix $(SRC_DIR), $(addsuffix .cpp, $(SRC_Names)))
+OBJ = $(addprefix $(OUT_DIR), $(notdir $(SRC:.cpp=.o)))
 
 foil: $(OBJ) Makefile
-	cc -g -o foil $(OBJ) -lm
+	$(CC) -g $(OBJ) -o $@
 
-$(OUT_DIR)%.o: $(SRC_DIR)%.c
+$(OUT_DIR)%.o: $(SRC_DIR)%.cpp
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(OBJ): $(SRC_DIR)/defns.i $(SRC_DIR)/extern.i

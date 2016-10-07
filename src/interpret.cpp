@@ -108,7 +108,7 @@ Boolean  CheckRHS(Clause C)
 	    KVal = A[2];
 	}
 
-	return Satisfies((int)R->Pos, A[1], KVal, Value) == (L->Sign != 0) &&
+	return Satisfies(R, A[1], KVal, Value) == (L->Sign != 0) &&
 	       CheckRHS(C+1);
     }
 

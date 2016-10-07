@@ -574,7 +574,7 @@ Boolean  TerminateScan(Relation R, Var *A)
     if ( Predefined(R) )
     {
 	BuiltIn = true;
-	RN = (int) R->Pos;
+	//RN = (int) R->Pos;
 	if ( HasConst(R) )
 	{
 	    GetParam(&A[2], &X2);
@@ -619,7 +619,7 @@ Boolean  TerminateScan(Relation R, Var *A)
 	    NFound = 0;
 	}
 	else
-	if ( BuiltIn ? Satisfies(RN, A[1], X2, Case) :
+	if ( BuiltIn ? Satisfies(R, A[1], X2, Case) :
 	     Join(R->Pos, R->PosIndex, A, Case, NArgs, false) )
 	{
     
@@ -956,11 +956,31 @@ Boolean  Unknown(Var V, Tuple T)
 	     FP(T[V]) == MISSING_FP : T[V] == MISSING_DISC );
 }
 
+Boolean  Satisfies(Relation r, Const V, Const W, Tuple Case)
+{
+	if (r == EQVAR){
+		NFound = ( Case[V] == Case[W] );
+	}
+	else if (r == EQCONST) {
+		NFound = ( Case[V] == W );
+	}
+	else if (r == GTVAR) {
+		NFound = ( FP(Case[V]) > FP(Case[W]) );
+	}
+	else if (r == GTCONST) {
+		NFound = ( FP(Case[V]) > FP(W) );
+	}
+	else {
+		printf("Error: unknown relation r!!!\n");
+		exit(0);
+	}
 
+	return NFound;
+}
 
 	/*  See whether a case satisfies built-in relation RN  */
 
-Boolean  Satisfies(int RN, Const V, Const W, Tuple Case)
+Boolean  Satisfies0(int RN, Const V, Const W, Tuple Case)
 /*       ---------  */
 {
     switch ( RN )
