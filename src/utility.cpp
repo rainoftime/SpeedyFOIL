@@ -2,7 +2,7 @@
 #include <sys/time.h>
 #include <sys/resource.h>
 
-extern int VERBOSITY;
+//extern int VERBOSITY;
 
 /*  Protected memory allocation routines on call for memory which
  is not allocated rather than let program continue erroneously */
