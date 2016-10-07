@@ -1,0 +1,6 @@
+
+./foil6 -n  < $PATH/abduce.d  | grep popl
+
+parent(A,B) :- father(A,B).
+parent(A,B) :- mother(A,B).
+parent(A,B) :- parent(A,C), parent(C,B).
