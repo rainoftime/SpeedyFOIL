@@ -1,5 +1,5 @@
-#include  "defns.i"
-#include  "extern.i"
+#include  "defns.h"
+#include  "extern.h"
 
 /*  Given tuples T with index TIX, find the tuples that satisfy
  the column and same-value constraints on case C.  Leave the

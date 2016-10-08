@@ -17,7 +17,7 @@ foil: $(OBJ) Makefile
 $(OUT_DIR)%.o: $(SRC_DIR)%.cpp
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(OBJ): $(SRC_DIR)/defns.i $(SRC_DIR)/extern.i
+$(OBJ): $(SRC_DIR)/defns.h $(SRC_DIR)/extern.h
 
 clean:
 	rm $(OBJ)

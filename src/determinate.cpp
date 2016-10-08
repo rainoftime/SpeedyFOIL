@@ -4,8 +4,8 @@
 /*									      */
 /******************************************************************************/
 
-#include  "defns.i"
-#include  "extern.i"
+#include  "defns.h"
+#include  "extern.h"
 
 Boolean GoodDeterminateLiteral(Relation R, Var *A, float LitBits)
 /*       ----------------------  */

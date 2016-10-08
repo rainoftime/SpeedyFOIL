@@ -7,8 +7,8 @@
 /*									      */
 /******************************************************************************/
 
-#include  "defns.i"
-#include  "extern.i"
+#include  "defns.h"
+#include  "extern.h"
 
 /*  Set up original state for search for definition  */
 

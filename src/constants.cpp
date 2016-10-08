@@ -11,8 +11,8 @@
 /******************************************************************************/
 
 
-#include  "defns.i"
-#include  "extern.i"
+#include  "defns.h"
+#include  "extern.h"
 
 Boolean		**Table=Nil;		/* partial order for target type */
 

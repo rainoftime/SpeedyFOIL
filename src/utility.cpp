@@ -1,4 +1,4 @@
-#include "defns.i"
+#include "defns.h"
 #include <sys/time.h>
 #include <sys/resource.h>
 

@@ -4,8 +4,8 @@
 /*									      */
 /******************************************************************************/
 
-#include "defns.i"
-#include "extern.i"
+#include "defns.h"
+#include "extern.h"
 
 #define		MAXTIME		100
 

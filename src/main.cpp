@@ -1,5 +1,5 @@
-#include  "defns.i"
-#include  "extern.i"
+#include  "defns.h"
+#include  "extern.h"
 
 /*  Read parameters and initialise variables  */
 

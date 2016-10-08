@@ -8,8 +8,8 @@
 /*									      */
 /******************************************************************************/
 
-#include "defns.i"
-#include "extern.i"
+#include "defns.h"
+#include "extern.h"
 
 /*  Examine relationships among variables: LHSVar <,=,>,#  anyvar and
  anyvar = anyvar  */
