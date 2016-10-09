@@ -1,24 +1,11 @@
 
+#include "clause_template.h"
+
 #include <vector>
 #include <string>
 #include <fstream>
 #include <sstream>
 #include <iostream>
-
-struct Predicate {
-  int pid;
-  int arity;
-  std::vector<int> vdom;
-  
-  std::string toStr() const;
-};
-
-struct Clause {
-  Predicate hd;
-  std::vector<Predicate> vbody;
-
-  std::string toStr() const;
-};
 
 
 std::string Predicate::toStr() const {
@@ -42,7 +29,6 @@ std::string Predicate::toStr() const {
 
 	  return ss.str();
 }
-
 
 
 std::string Clause::toStr() const {
@@ -77,14 +63,6 @@ Predicate readPredicate(std::ifstream& fin)
 	return pred;
 }
 
-
-struct TemplateManager {
-	std::vector<Clause> templates;
-
-	void loadTemplates(std::string fpath);
-	void showTemplates() const;
-
-};
 
 // Template Encoding for rule: path(x,y) :- path(x,z), edge(z, y).
 // 2
