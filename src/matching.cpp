@@ -1,7 +1,8 @@
 
-#include "clause_template.h"
+#include <template.h>
 #include <vector>
 
+namespace SpeedyFOIL {
 
 struct Matching {
 
@@ -22,3 +23,6 @@ struct Matching {
     
    */
 };
+
+
+}

@@ -11,6 +11,8 @@ SRC_Names = global main input output state literal evaluatelit search determinat
 SRC = $(addprefix $(SRC_DIR), $(addsuffix .cpp, $(SRC_Names)))
 OBJ = $(addprefix $(OUT_DIR), $(notdir $(SRC:.cpp=.o)))
 
+
+
 foil: $(OBJ) Makefile
 	$(CC) $(CFLAGS) $(OBJ) -o $@
 
@@ -18,6 +20,12 @@ $(OUT_DIR)%.o: $(SRC_DIR)%.cpp
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(OBJ): $(SRC_DIR)/defns.h $(SRC_DIR)/extern.h
+
+clause_template: src/clause_template.cpp  src/clause_template.h
+	$(CC) $(CFLAGS) src/clause_template.cpp 
+	
+all: foil clause_template
+
 
 clean:
 	rm $(OBJ)
