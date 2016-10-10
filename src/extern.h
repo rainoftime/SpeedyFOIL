@@ -4,6 +4,9 @@
 /*									      */
 /******************************************************************************/
 
+#ifndef EXTERN_H
+#define EXTERN_H
+
 extern SDNConfig sdnConfig;
 extern Var SDNCommonV;
 
@@ -117,3 +120,5 @@ extern int		NToBeTried;
 extern PossibleLiteral	*Possible;
 extern int		NPossible,
 			NDeterminate;
+
+#endif

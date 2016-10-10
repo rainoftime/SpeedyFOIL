@@ -1,3 +1,6 @@
+#ifndef DEFNS_H
+#define DEFNS_H
+
 #include <ctype.h>
 #include <math.h>
 #include <stdio.h>
@@ -484,3 +487,5 @@ void	  FreePartOrd(Boolean **PO, int Size);
 void	  ClearPartOrd(Boolean **PO);
 void	  FindConsistentSubset(int Included, int TryNext, Boolean **PO);
 int	  CountEntries(int K);
+
+#endif
