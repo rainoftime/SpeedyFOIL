@@ -6,7 +6,7 @@ OUT_DIR = _build/
 CFLAGS = -g -std=c++11
 
 SRC_Names = global main input output state literal evaluatelit search determinate order \
- 	join utility finddef interpret prune constants
+ 	join utility finddef interpret prune constants template matching
 
 SRC = $(addprefix $(SRC_DIR), $(addsuffix .cpp, $(SRC_Names)))
 OBJ = $(addprefix $(OUT_DIR), $(notdir $(SRC:.cpp=.o)))
@@ -21,11 +21,14 @@ $(OUT_DIR)%.o: $(SRC_DIR)%.cpp
 
 $(OBJ): $(SRC_DIR)/defns.h $(SRC_DIR)/extern.h
 
-clause_template: src/clause_template.cpp  src/clause_template.h
-	$(CC) $(CFLAGS) src/clause_template.cpp 
-	
-all: foil clause_template
+clause_template: src/template.cpp  src/template.h
+	$(CC) $(CFLAGS) src/template.cpp 
 
+#matching: src/template.cpp  src/template.h
+#	$(CC) $(CFLAGS) src/matching.cpp 
+
+#all: foil clause_template matching
+all: foil
 
 clean:
 	rm $(OBJ)

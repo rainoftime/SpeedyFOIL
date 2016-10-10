@@ -1,5 +1,10 @@
 #include  "defns.h"
 #include  "extern.h"
+#include  "template.h"
+
+
+#include <iostream>
+#include <string>
 
 /*  Read parameters and initialise variables  */
 
@@ -96,8 +101,12 @@ int main(int Argc, char *Argv[])
 	Relation R;
 	Tuple Case;
 	char Line[200], PlusOrMinus;
-	/* Check overlaying of Const and float */
 
+	SpeedyFOIL::Matching M;
+	std::string s;
+
+
+	/* Check overlaying of Const and float */
 	if (sizeof(Const) != sizeof(float)) {
 		printf("Integers and floating point numbers are different sizes\n");
 		printf("Alter declaration of type Const (defns.i) and recompile\n");
@@ -108,7 +117,7 @@ int main(int Argc, char *Argv[])
 
 	/*  Process options  */
 
-	while ((o = getopt(Argc, Argv, "pnNus:a:f:g:V:d:A:w:l:t:m:v:y:")) != EOF) {
+	while ((o = getopt(Argc, Argv, "pnNus:a:f:g:V:d:A:w:l:t:m:v:y:T:")) != EOF) {
 		if (FirstTime) {
 			printf("\n    Options:\n");
 			FirstTime = false;
@@ -201,6 +210,12 @@ int main(int Argc, char *Argv[])
 		case 'y':
 			SDNCONSTRAINT = true;
 			readSDNConfig(optarg);
+			break;
+
+		case 'T':
+			s = std::string(optarg);
+			M.tm.loadTemplates(s);
+			M.tm.showTemplates();
 			break;
 
 		case '?':
@@ -340,9 +355,26 @@ int main(int Argc, char *Argv[])
 	RecursiveLitOrders = Alloc(1, Ordering *);
 	RecursiveLitOrders[0] = Alloc(MAXARGS + 1, Ordering);
 
+
 	/*  Find plausible orderings  for constants of each type  */
 
 	OrderConstants();
+
+
+	// test SpeedyFOIL
+	bool testSpeedy = true;
+
+	printf("will test SpeedyFOIL soon...\n");
+
+
+	M.relm.loadRelations(RelnOrder, MaxRel+1);
+	M.relm.showRelations();
+
+
+	if(testSpeedy) {
+		return 0;
+	}
+
 
 	/* Find Definitions */
 
