@@ -6,6 +6,7 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <iostream>
 
 namespace SpeedyFOIL {
 
@@ -27,6 +28,8 @@ struct TPredicate {
 			pid(0), arity(0) {
 	}
 
+	TPredicate(const TPredicate& ) = default;
+
 	TPredicate(TPredicate&& pr) noexcept : pid(pr.pid), arity(pr.arity), vdom(std::move(pr.vdom)) {}
 
 	TPredicate& operator= (TPredicate&& pr) noexcept {
@@ -46,6 +49,8 @@ struct TClause {
 
 	TClause() {}
 
+	TClause(const TClause& ) = default;
+
 	TClause(TClause&& cl) noexcept : hd(std::move(cl.hd)), vbody(std::move(cl.vbody)) {}
 	TClause& operator= (TClause&& cl) noexcept {
 		hd = std::move(cl.hd);
@@ -56,29 +61,47 @@ struct TClause {
 	std::string toStr() const;
 };
 
+// a wrapper of the old Relation
+struct TRelation {
+	Relation pRel;
+	TRelation(Relation p): pRel(p){}
+
+	Relation getRel() const {return pRel;}
+	int getArity() const {return pRel->Arity;}
+	TypeInfo getType(int k) const {return pRel->TypeRef[k+1]; }
+	std::string getRelName() const {return std::string(pRel->Name);}
+
+	std::string getRelNameWithTypes() const;
+
+	std::vector<std::string> getStrs() const;
+
+	bool possibleMatch(const TPredicate &) const;
+};
+
+
 // instantiated clause
 struct IClause {
-	const TClause& tc;
-	const TRelation& cl_hd;
+	TClause tc;
+	TRelation cl_hd;
+	std::vector<TRelation> cl_body;
 
-	IClause(const TClause& c,
-			const TRelation& r,
-			std::vector<TRelation>& vrel): tc(c), cl_hd(r), cl_body(std::move(vrel)) {}
+	IClause(const TClause& c, const TRelation& r, std::vector<TRelation>& vrel) :
+			tc(c), cl_hd(r), cl_body(std::move(vrel)) {
+	}
 
-	IClause(IClause&& cl) noexcept: tc(cl.tc), cl_hd(cl.cl_hd), cl_body(std::move(cl.cl_body))  {}
+	IClause(const IClause&&) = delete;
 
-	/*
-	 * assignment should be forbidden
-	IClause& operator= (IClause&& cl) noexcept{
-		tc = cl.tc;
+	IClause(IClause&& cl) noexcept: tc(std::move(cl.tc)), cl_hd(cl.cl_hd), cl_body(std::move(cl.cl_body)) {
+	}
+
+	IClause& operator= (IClause&& cl) noexcept {
+		tc = std::move(cl.tc);
 		cl_hd = cl.cl_hd;
 		cl.cl_body = std::move(cl.cl_body);
 		return *this;
 	}
-	 */
-	std::vector<TRelation> cl_body;
 
-	void explain();
+	void explain() const;
 };
 
 struct TemplateManager {
@@ -91,20 +114,6 @@ struct TemplateManager {
 
 };
 
-// a wrapper of the old Relation
-struct TRelation {
-	Relation pRel;
-	TRelation(Relation p): pRel(p){}
-
-	Relation getRel() const {return pRel;}
-	int getArity() const {return pRel->Arity;}
-	TypeInfo getType(int k) const {return pRel->TypeRef[k]; }
-	std::string getRelName() const {return std::string(pRel->Name);}
-
-	std::vector<std::string> getStrs() const;
-
-	bool possibleMatch(const TPredicate &) const;
-};
 
 
 struct RelationManager {

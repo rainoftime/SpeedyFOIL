@@ -17,19 +17,25 @@ bool checkAndUpdate(const TPredicate& pred,
 		std::map<int, TypeInfo>& tyMap) {
 
 	if(rel.getArity() != pred.arity) {
+		//std::cout << "checkAndUpdate: arity does not match\n";
 		return false;
 	}
 
 	// std::map<int, Relation>::iterator
 	auto it = relMap.find(pred.pid);
 	if(it != relMap.end() && rel.getRel() != it->second) {
-		return false;
+		//std::cout << "checkAndUpdate: relation is not expected\n";
+		//std::cout << "pred=" << pred.toStr() << ", current rel:" << rel.getRelName()
+		//		<< ", expected rel:" << it->second->Name << std::endl;
+ 		return false;
 	}
 
 	for(int i=0; i < pred.arity; ++i) {
 		int v = pred.vdom[i];
 		auto it2 = tyMap.find(v);
 		if(it2 != tyMap.end() && it2->second != rel.getType(i)) {
+			std::cout << "checkAndUpdate: type is not expected\n";
+
 			return false;
 		}
 	}
@@ -74,6 +80,12 @@ std::vector<IClause> Matching::findMatchingsWithTemplate(const TRelation& rel,
 bool Matching::exploreBody(const TClause& tc, std::vector<TRelation>& rels,
 		std::map<int, Relation>& relMap, std::map<int, TypeInfo>& tyMap) const {
 
+	std::cout << "exploreBody: tc=" << tc.toStr() << ", rels: ";
+	for(auto &x : rels){
+		std::cout << x.getRelName() <<", ";
+	}
+	std::cout << std::endl;
+
 	if( rels.size() == tc.vbody.size() ) {
 		return true;
 	}
@@ -111,11 +123,20 @@ std::vector<IClause> Matching::findAllMatchings(const TRelation & rel) const {
 	std::vector<TClause> candidates = tm.findAllPossilbeMatchings(rel);
 
 	for(const TClause& tc : candidates) {
+		//std::cout << "\nwill test template: " << tc.toStr()
+		//		<< "  for relation: " << rel.getRelName() << "\n\n";
 		for(IClause& x : findMatchingsWithTemplate(rel, tc)){
+			//std::cout << "find a matching for " << rel.getRelName() << std::endl;
+			//std::cout << "template is : " << tc.toStr() << std::endl;
+			//x.explain();
+
 			matchings.push_back( std::move(x) );
+			//matchings.push_back( x );
 		}
 	}
 
+	//std::cout << "before return result of findAllMatchings:\n";
+	//for(const IClause& icl : matchings) icl.explain();
 	return matchings;
 }
 
@@ -124,7 +145,12 @@ void Matching::work() {
 	for(TRelation& rel : relm.vIDBRel) {
 		std::cout << "Explore IDB: " << rel.getRelName() << std::endl;
 
-		std::vector<IClause> res = findAllMatchings(rel);
+		const std::vector<IClause>& res = findAllMatchings(rel);
+
+		std::cout << "after findAllMatchings:" << std::endl;
+		for(const IClause& icl : res) {
+			icl.explain();
+		}
 	}
 }
 

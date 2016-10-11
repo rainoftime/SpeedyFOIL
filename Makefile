@@ -19,7 +19,7 @@ foil: $(OBJ) Makefile
 $(OUT_DIR)%.o: $(SRC_DIR)%.cpp
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(OBJ): $(SRC_DIR)/defns.h $(SRC_DIR)/extern.h
+$(OBJ): $(SRC_DIR)/defns.h $(SRC_DIR)/extern.h $(SRC_DIR)/template.h
 
 clause_template: src/template.cpp  src/template.h
 	$(CC) $(CFLAGS) src/template.cpp 

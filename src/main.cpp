@@ -369,6 +369,7 @@ int main(int Argc, char *Argv[])
 
 	M.relm.loadRelations(RelnOrder, MaxRel+1);
 	M.relm.showRelations();
+	M.work();
 
 
 	if(testSpeedy) {

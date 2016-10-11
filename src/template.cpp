@@ -21,6 +21,28 @@ TPredicate readPredicate(std::ifstream& fin) {
 
 	return pred;
 }
+
+std::string formatTPredicate(const TPredicate& pred, const TRelation& rel){
+	std::stringstream ss;
+
+	std::vector<std::string> strs = rel.getStrs();
+
+	if (pred.arity != strs.size() - 1) {
+		std::cerr << "Arity does not match with template " << std::endl;
+	}
+
+	ss << strs[0] << "(";
+	for (int i = 0; i < pred.arity; ++i) {
+		if (i) {
+			ss << ",";
+		}
+		ss << "x" << pred.vdom[i] << ":" << strs[i + 1];
+	}
+	ss << ")";
+
+	return ss.str();
+}
+
 } // namespace anonymous
 
 
@@ -30,7 +52,9 @@ std::string TPredicate::toStr() const {
 	if (arity > 0) {
 		if (arity != vdom.size()) {
 			std::cerr
-					<< "Predicate: the arity and actual vdom size does not match"
+					<< "Predicate: the arity and actual vdom size does not match, "
+					<< "arity=" << arity
+					<< ", vdom.sz=" << vdom.size()
 					<< std::endl;
 		}
 		//static_assert(arity == vdom.size(), "Predicate: the arity and actual vdom size does not match");
@@ -67,26 +91,23 @@ std::string TClause::toStr() const {
 }
 
 
-void IClause::explain() {
+void IClause::explain() const{
 	std::cout << "One possible instantiation: " << std::endl;
 	std::cout << "Template: " << tc.toStr() << std::endl;
 
-	std::vector<std::string> hd_strs = cl_hd.getStrs();
-	if(tc.hd.arity != hd_strs.size() - 1) {
-		std::cerr << "Arity does not match with template head" << std::endl;
-	}
-
-
 	// output head
-	std::cout << hd_strs[0] << "(";
-	for(int i=0; i<tc.hd.arity; ++i) {
-		if(i) std::cout << ",";
-		std::cout << "x" << tc.hd.vdom[i] << ":" << hd_strs[i+1];
-	}
-
+	std::cout << formatTPredicate(tc.hd, cl_hd) << " :- ";
 
 	// output body
+	int n = tc.vbody.size();
+	for(int i=0; i < n; ++i) {
+		if(i) {
+			std::cout << ",";
+		}
+		std::cout << formatTPredicate(tc.vbody[i], cl_body[i]);
+	}
 
+	std::cout << "." << std::endl;
 
 }
 
@@ -123,7 +144,7 @@ std::vector<TClause> TemplateManager::findAllPossilbeMatchings(const TRelation& 
 	std::vector<TClause> res;
 	for(const TClause& tc : templates) {
 		if(rel.possibleMatch(tc.hd)){
-			//res.push_back(tc);
+			res.push_back(tc);
 		}
  	}
 	return res;
@@ -136,10 +157,29 @@ std::vector<std::string> TRelation::getStrs() const {
 	int n = getArity();
 	for(int i = 0; i < n; ++i){
 		TypeInfo ty = getType(i);
-		res.push_back( std::string(ty->Name) );
+		if(ty){
+			res.push_back( std::string(ty->Name) );
+		}
+		else {
+			res.push_back( "nil" );
+		}
 	}
 
 	return res;
+}
+
+std::string TRelation::getRelNameWithTypes() const {
+	std::stringstream ss;
+
+	std::vector<std::string> vs = getStrs();
+	ss << vs[0] << "(";
+	for(int i=1; i<vs.size(); ++i) {
+		if(i>1) ss << ",";
+		ss << vs[i];
+	}
+	ss << ")";
+
+	return ss.str();
 }
 
 
@@ -166,12 +206,12 @@ void RelationManager::loadRelations(Relation* reln, int n) {
 void RelationManager::showRelations() const {
 	std::cout <<"EDB relations:";
 	for(const TRelation& r : vEDBRel) {
-		std::cout << r.getRelName() << ", ";
+		std::cout << r.getRelNameWithTypes() << ", ";
 	}
 	std::cout << std::endl << "IDB relations: ";
 
 	for(const TRelation& r : vIDBRel) {
-		std::cout << r.getRelName() << ", ";
+		std::cout << r.getRelNameWithTypes() << ", ";
 	}
 	std::cout << std::endl;
 }
