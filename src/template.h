@@ -149,10 +149,11 @@ struct Matching {
 
   std::vector<IClause> findMatchingsWithTemplate(const TRelation& rel, const TClause& tc) const;
 
-  bool exploreBody(const TClause& tc,
+  void exploreBody(const TClause& tc,
 		  std::vector<TRelation>& rels,
 		  std::map<int, Relation>& relMap,
-		  std::map<int, TypeInfo>& tyMap) const;
+		  std::map<int, TypeInfo>& tyMap,
+		  std::vector<std::vector<TRelation>>& results) const;
 
   void work();
 };

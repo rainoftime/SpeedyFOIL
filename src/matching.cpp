@@ -34,7 +34,7 @@ bool checkAndUpdate(const TPredicate& pred,
 		int v = pred.vdom[i];
 		auto it2 = tyMap.find(v);
 		if(it2 != tyMap.end() && it2->second != rel.getType(i)) {
-			std::cout << "checkAndUpdate: type is not expected\n";
+			//std::cout << "checkAndUpdate: type is not expected\n";
 
 			return false;
 		}
@@ -59,35 +59,13 @@ bool checkAndUpdate(const TPredicate& pred,
 
 } // end of anonymous namespace
 
-std::vector<IClause> Matching::findMatchingsWithTemplate(const TRelation& rel,
-		const TClause& tc) const {
-
-	std::vector<IClause> matchings;
-
-	std::map<int, Relation> relMap;
-	std::map<int, TypeInfo> tyMap;
-
-	std::vector<TRelation> vr;
-	if (checkAndUpdate(tc.hd, rel, relMap, tyMap)) {
-		if (exploreBody(tc, vr, relMap, tyMap)) {
-			matchings.push_back(IClause(tc, rel, vr));
-		}
-	}
-
-	return matchings;
-}
-
-bool Matching::exploreBody(const TClause& tc, std::vector<TRelation>& rels,
-		std::map<int, Relation>& relMap, std::map<int, TypeInfo>& tyMap) const {
-
-	std::cout << "exploreBody: tc=" << tc.toStr() << ", rels: ";
-	for(auto &x : rels){
-		std::cout << x.getRelName() <<", ";
-	}
-	std::cout << std::endl;
+void Matching::exploreBody(const TClause& tc, std::vector<TRelation>& rels,
+		std::map<int, Relation>& relMap, std::map<int, TypeInfo>& tyMap, std::vector<std::vector<TRelation>>& results) const {
 
 	if( rels.size() == tc.vbody.size() ) {
-		return true;
+		results.push_back( rels );
+		return;
+		//return true;
 	}
 	int k = rels.size();
 	const TPredicate & pred = tc.vbody[k];
@@ -102,9 +80,7 @@ bool Matching::exploreBody(const TClause& tc, std::vector<TRelation>& rels,
 	for(const TRelation& r : relCandidates) {
 		if (checkAndUpdate(pred, r, relMap, tyMap)) {
 			rels.push_back(r);
-			if(exploreBody(tc, rels, relMap, tyMap)){
-				return true;
-			}
+			exploreBody(tc, rels, relMap, tyMap, results);
 			rels.pop_back();
 		}
 
@@ -112,8 +88,26 @@ bool Matching::exploreBody(const TClause& tc, std::vector<TRelation>& rels,
 		relMap = localRelMap;
 		tyMap = localTyMap;
 	}
+}
 
-	return false;
+std::vector<IClause> Matching::findMatchingsWithTemplate(const TRelation& rel,
+		const TClause& tc) const {
+
+	std::vector<IClause> matchings;
+
+	std::map<int, Relation> relMap;
+	std::map<int, TypeInfo> tyMap;
+
+	std::vector<TRelation> tmp_vr;
+	std::vector<std::vector<TRelation>> vvr;
+	if (checkAndUpdate(tc.hd, rel, relMap, tyMap)) {
+		exploreBody(tc, tmp_vr, relMap, tyMap, vvr);
+		for (std::vector<TRelation>& vr : vvr) {
+			matchings.push_back(IClause(tc, rel, vr));
+		}
+	}
+
+	return matchings;
 }
 
 
@@ -123,20 +117,11 @@ std::vector<IClause> Matching::findAllMatchings(const TRelation & rel) const {
 	std::vector<TClause> candidates = tm.findAllPossilbeMatchings(rel);
 
 	for(const TClause& tc : candidates) {
-		//std::cout << "\nwill test template: " << tc.toStr()
-		//		<< "  for relation: " << rel.getRelName() << "\n\n";
 		for(IClause& x : findMatchingsWithTemplate(rel, tc)){
-			//std::cout << "find a matching for " << rel.getRelName() << std::endl;
-			//std::cout << "template is : " << tc.toStr() << std::endl;
-			//x.explain();
-
 			matchings.push_back( std::move(x) );
-			//matchings.push_back( x );
 		}
 	}
 
-	//std::cout << "before return result of findAllMatchings:\n";
-	//for(const IClause& icl : matchings) icl.explain();
 	return matchings;
 }
 
@@ -147,10 +132,11 @@ void Matching::work() {
 
 		const std::vector<IClause>& res = findAllMatchings(rel);
 
-		std::cout << "after findAllMatchings:" << std::endl;
-		for(const IClause& icl : res) {
-			icl.explain();
-		}
+		std::cout << "Possible instantiations: " << res.size() << std::endl;
+		//std::cout << "after findAllMatchings:" << std::endl;
+		//for(const IClause& icl : res) {
+		//	icl.explain();
+		//}
 	}
 }
 
