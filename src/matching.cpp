@@ -3,6 +3,8 @@
 #include <vector>
 #include <map>
 #include <iostream>
+#include <sstream>
+
 
 namespace SpeedyFOIL {
 
@@ -127,17 +129,24 @@ std::vector<IClause> Matching::findAllMatchings(const TRelation & rel) const {
 
 
 void Matching::work() {
+	std::stringstream ss;
+
+	ss << "Template Stats: ";
 	for(TRelation& rel : relm.vIDBRel) {
-		std::cout << "Explore IDB: " << rel.getRelName() << std::endl;
+		ss << rel.getRelName() << ": ";
+		//std::cout << "Explore IDB: " << rel.getRelName() << std::endl;
 
 		const std::vector<IClause>& res = findAllMatchings(rel);
 
-		std::cout << "Possible instantiations: " << res.size() << std::endl;
+		ss << res.size() << ", ";
+		//std::cout << "Possible instantiations: " << res.size() << std::endl;
 		//std::cout << "after findAllMatchings:" << std::endl;
 		//for(const IClause& icl : res) {
 		//	icl.explain();
 		//}
 	}
+
+	std::cout << ss.str() << std::endl;
 }
 
 }  // end of namespace SpeedyFOIL
