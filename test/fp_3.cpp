@@ -87,11 +87,24 @@ int main(){
 
 
   Z3_ast ast_res = Z3_fixedpoint_get_answer(c,fp);
-  z3::ast detailed_res (c, ast_res);
-  
+  //z3::ast detailed_res (c, ast_res);
+  z3::expr detailed_res (c, ast_res);
+   
+  if(detailed_res.is_app()) {
+    std::cout << "detailed_res is app" << std::endl;
+
+    int n_args = detailed_res.num_args();
+    std::cout << "number of args: " << n_args << std::endl;
+    for(int i=0; i < n_args; ++i) {
+      std::cout << i << "-th arg: " << detailed_res.arg(i) << std::endl;
+    }
+
+  }
+
   std::cout << detailed_res << std::endl;
 
 
+  std::cout << "res = " << res << std::endl;
 
   if(res == Z3_L_FALSE) {
     std::cout << "res is L_false" << std::endl;
