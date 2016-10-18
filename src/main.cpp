@@ -1,6 +1,7 @@
 #include  "defns.h"
 #include  "extern.h"
 #include  "template.h"
+#include  "datalog.h"
 
 
 #include <iostream>
@@ -103,6 +104,7 @@ int main(int Argc, char *Argv[])
 	char Line[200], PlusOrMinus;
 
 	SpeedyFOIL::Matching M;
+	SpeedyFOIL::DatalogProgram DP(M);
 	std::string s;
 
 
@@ -372,7 +374,8 @@ int main(int Argc, char *Argv[])
 	M.relm.loadRelations(RelnOrder, MaxRel+1);
 	M.relm.showRelations();
 	//M.work();
-	M.work2();
+	//M.work2();
+	DP.work();
 
 
 	if(testSpeedy) {
