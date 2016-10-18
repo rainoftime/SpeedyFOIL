@@ -42,18 +42,20 @@ struct IDBTR {
 
 	void init();
 	std::set<int> extractRules(const std::set<int>&) const;
-	std::set<int> chooseK(int k);
-	std::set<int> refineDown();
-	std::set<int> refineUp();
+	std::set<int> chooseK(int k) const;
+	std::set<int> generalize(int rule_index) const;
+	std::set<int> specialize(int rule_index) const;
 
 };
 
 struct DatalogProgram {
+	static int programCt;
+
 	const DPManager* dpm;
 	int prog_id;
 	std::map<int, std::set<int>> state;
 
-	DatalogProgram(int _id, const DPManager* p) : prog_id(_id), dpm(p) {}
+	DatalogProgram(const DPManager* p) : prog_id(++programCt), dpm(p) {}
 	DatalogProgram(const DatalogProgram&) = delete;
 
 	DatalogProgram(DatalogProgram&& dp) noexcept : prog_id(dp.prog_id), dpm(dp.dpm), state(std::move(dp.state)) {
@@ -62,17 +64,6 @@ struct DatalogProgram {
 	}
 
 	DatalogProgram& operator = (DatalogProgram&& dp)  = delete;
-	/*
-	DatalogProgram& operator = (DatalogProgram&& dp) noexcept {
-		prog_id = dp.prog_id;
-		dpm = dp.dpm;
-		state = std::move(dp.state);
-
-		dp.prog_id = -1;
-		dp.dpm = nullptr;
-
-		return *this;
-	}*/
 
 	bool operator < (const DatalogProgram& dp) const {
 		return prog_id < dp.prog_id;
@@ -84,16 +75,15 @@ struct DPManager {
 	const Matching& M;
 	std::vector<IDBTR> idbRules;
 
-	int programCt;
 
 	std::set<DatalogProgram> Gs;
 	std::set<DatalogProgram> Ss;
 
 	std::set<DatalogProgram> generalizeProg(const DatalogProgram& prog) const;
-	std::set<DatalogProgram> specializeProg(const DatalogProgram& prog) const;
+	std::set<DatalogProgram> refineProg(const DatalogProgram& prog, bool specialize) const;
 
 
-	DPManager(const Matching& match) : M(match), programCt(0) {}
+	DPManager(const Matching& match) : M(match) {}
 
 	void exploreCandidateRules();
 

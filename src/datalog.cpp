@@ -8,6 +8,8 @@
 
 namespace SpeedyFOIL {
 
+int DatalogProgram::programCt = 0;
+
 std::set<int> IDBTR::extractRules(const std::set<int>& tmpls) const {
 	std::set<int> res;
 	for (const int x : tmpls) {
@@ -50,6 +52,17 @@ void IDBTR::init(){
 	//mostS.insert( extractRules(tm.getMostSpecific()) );
 
 }
+
+std::set<int> IDBTR::generalize(int rule_index) const{
+	std::set<int> res;
+	return res;
+}
+
+std::set<int> IDBTR::specialize(int rule_index) const{
+	std::set<int> res;
+	return res;
+}
+
 
 void DPManager::exploreCandidateRules() {
 	for(const TRelation& rel : M.relm.vIDBRel) {
@@ -94,6 +107,42 @@ void DPManager::exploreCandidateRules() {
 	}
 
 }
+
+std::set<DatalogProgram> DPManager::refineProg(const DatalogProgram& prog, bool specialize) const {
+	std::set<DatalogProgram> res;
+
+	for(auto pr : prog.state) {
+		int idb_index = pr.first;
+		const IDBTR & idb = idbRules[idb_index];
+
+		const std::set<int>& rule_st = pr.second;
+
+		// specialize one rule
+		for(int rl : rule_st) {
+			// try all candidates for one rule
+			std::set<int> candidates = specialize ? idb.specialize(rl) : idb.generalize(rl);
+			for(int can : candidates) {
+				std::set<int> cp_st = rule_st;
+				// NOTE: erase one then insert one,
+				// #rules for an IDB does not change
+				cp_st.erase(rl);
+				cp_st.insert(can);
+
+				std::map<int, std::set<int>> cp_state = prog.state;
+				cp_state[idb_index] = std::move(cp_st);
+
+				DatalogProgram dp(this);
+				dp.state = std::move(cp_state);
+
+				// NOTE: this insertion happens in three layer nested loops, could explode!!
+				res.insert( std::move(dp) );
+			}
+		}
+	}
+
+	return res;
+}
+
 
 
 } // end of namespace SpeedyFOIL
