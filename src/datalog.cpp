@@ -3,19 +3,26 @@
 
 namespace SpeedyFOIL {
 
-void DatalogProgram::work() {
+void DatalogProgram::exploreCandidateRules() {
 	for(const TRelation& rel : M.relm.vIDBRel) {
 
 		std::cout << "Relation: " << rel.getRelNameWithTypes( ) << std::endl;
 		std::vector<TClause> candidates = M.tm.findAllPossilbeMatchings(rel);
 		std::vector<TClause> useful_templates;
 
+		std::vector<IClause> matchings;
+
 		for(const TClause& tc : candidates) {
 			std::vector<IClause> Ms = M.findMatchingsWithTemplate(rel, tc);
+
 			if(Ms.size()) {
 				std::cout << ">> Template: " << tc.toStr() << ",  matches: " << Ms.size() << std::endl;
 
 				useful_templates.push_back(tc);
+			}
+
+			for(IClause& m : Ms) {
+				matchings.push_back( std::move(m) );
 			}
 		}
 
@@ -29,6 +36,13 @@ void DatalogProgram::work() {
 		std::cout << "independent: " << tempM.getIndependent().size() << std::endl;
 
 		tempM.logPO2dot( rel.getRelName() + ".dot" );
+
+		IDBTR idb;
+		idb.tm = std::move(tempM);
+		idb.rules = std::move(matchings);
+
+
+		idbRules.push_back( std::move(idb) );
 	}
 
 }

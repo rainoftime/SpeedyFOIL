@@ -136,6 +136,21 @@ struct TemplateManager {
 
 	void logPO2dot(std::string f);
 
+	TemplateManager() {}
+
+	TemplateManager(TemplateManager&& tm) noexcept :
+			templates(std::move(tm.templates)),
+			general_po(std::move(tm.general_po)),
+			specific_po(std::move(tm.specific_po)) {}
+
+	TemplateManager& operator = (TemplateManager&& tm) noexcept {
+		templates = std::move(tm.templates);
+		general_po = std::move(tm.general_po);
+		specific_po = std::move(tm.specific_po);
+
+		return *this;
+	}
+
 	std::vector<TClause> findAllPossilbeMatchings(const TRelation&) const;
 
 };

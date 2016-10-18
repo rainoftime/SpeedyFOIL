@@ -375,7 +375,7 @@ int main(int Argc, char *Argv[])
 	M.relm.showRelations();
 	//M.work();
 	//M.work2();
-	DP.work();
+	DP.exploreCandidateRules();
 
 
 	if(testSpeedy) {
