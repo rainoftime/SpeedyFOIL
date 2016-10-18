@@ -69,6 +69,7 @@ struct TClause {
 	bool moreGeneralThan(const TClause& tc) const;
 
 	bool existDisconnectedPred() const;
+	bool existUnboundVarInHead() const;
 	std::string toStr() const;
 };
 

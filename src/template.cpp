@@ -214,6 +214,24 @@ bool TClause::existDisconnectedPred() const {
 	return visited.size() != sz;
 }
 
+bool TClause::existUnboundVarInHead() const {
+	std::set<int> visited;
+
+	for(const TPredicate& pred : vbody){
+		for(int x : pred.vdom) {
+			visited.insert(x);
+		}
+	}
+
+	for(int x : hd.vdom){
+		if( visited.find(x) == visited.end() ){
+			return true;
+		}
+	}
+
+	return false;
+}
+
 
 bool TClause::moreGeneralThan(const TClause& tc) const {
 
@@ -299,11 +317,11 @@ void TemplateManager::loadTemplates(std::string fpath) {
 			cl.vbody.push_back(readPredicate(fin));
 		}
 
-		if(! cl.existDisconnectedPred()){
-			templates.push_back(std::move(cl));
+		if(cl.existDisconnectedPred() || cl.existUnboundVarInHead() ){
+			//std::cout << "ignore:  " << cl.toStr() << std::endl;
 		}
 		else {
-			//std::cout << "ignore:  " << cl.toStr() << std::endl;
+			templates.push_back(std::move(cl));
 		}
 	}
 
@@ -417,6 +435,13 @@ void TemplateManager::logPO2dot(std::string fpath) {
 	std::ofstream fout(fpath);
 	fout << "digraph G {\n";
 
+	fout << "  subgraph {\n";
+	fout << "    rank = same;";
+	for(int x : getMostGeneral()) {
+		fout << "v" << x << "; ";
+	}
+	fout << "\n  }\n";
+
 	const int sz = templates.size();
 	for (int i = 0; i < sz; ++i) {
 		if (general_po[i].size()) {
@@ -429,7 +454,14 @@ void TemplateManager::logPO2dot(std::string fpath) {
 	}
 
 	for (int i = 0; i < sz; ++i) {
-		fout << "v" << i << " [label=\"" << templates[i].toStr() << "\"];\n";
+		std::string s = templates[i].toStr();
+		int j = 0;
+		while(j < s.length()){
+			if(s[j] == '-') break;
+			++j;
+		}
+
+		fout << "v" << i << " [label=\"" << s.substr(j+1) << "\"];\n";
 	}
 
 	fout << "}\n";
