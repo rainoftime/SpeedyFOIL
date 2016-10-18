@@ -179,6 +179,42 @@ std::string TClause::toStr() const {
 	return ss.str();
 }
 
+bool TClause::existDisconnectedPred() const {
+	std::set<int> connectedVars;
+	std::set<int> visited;
+	for(int x : hd.vdom){
+		connectedVars.insert(x);
+	}
+
+	const int sz = vbody.size();
+	bool update = true;
+	while(update) {
+		update = false;
+		for(int i=0; i< sz; ++i) {
+			if(visited.find(i) != visited.end()) {
+				continue;
+			}
+
+			const TPredicate& p = vbody[i];
+			for(int x : p.vdom) {
+				if( connectedVars.find(x) !=  connectedVars.end()){
+					visited.insert(i);
+					for(int y: p.vdom) connectedVars.insert(y);
+					update = true;
+					break;
+				}
+			}
+		}
+	}
+
+	//std::cout << "visited(sz=" << visited.size() << "): ";
+	//for(int x : visited) std::cout << x << " ";
+	//std::cout <<"\nvbody.sz=" << sz << std::endl;
+
+	return visited.size() != sz;
+}
+
+
 bool TClause::moreGeneralThan(const TClause& tc) const {
 
 	if(! quickCheckGeneral(vbody, tc.vbody)){
@@ -215,7 +251,7 @@ bool TClause::moreGeneralThan(const TClause& tc) const {
 
 		// test
 		if(moreGeneral(0,0, vbody, tv, cpRelMap, cpVarMap)) {
-			std::cout << "great! find one more general case" << std::endl;
+			//std::cout << "great! find one more general case" << std::endl;
 			return true;
 		}
 
@@ -263,7 +299,12 @@ void TemplateManager::loadTemplates(std::string fpath) {
 			cl.vbody.push_back(readPredicate(fin));
 		}
 
-		templates.push_back(std::move(cl));
+		if(! cl.existDisconnectedPred()){
+			templates.push_back(std::move(cl));
+		}
+		else {
+			//std::cout << "ignore:  " << cl.toStr() << std::endl;
+		}
 	}
 
 }
@@ -308,7 +349,7 @@ void TemplateManager::buildPartialOrder() {
 	const int sz = templates.size();
 	for(int i=0;i< sz; ++i) {
 
-		std::cout<< "buildPartialOrder, i=" << i << std::endl;
+		//std::cout<< "buildPartialOrder, i=" << i << std::endl;
 
 		const TClause& ta = templates[i];
 		for(int j=0; j < sz; ++j) {
@@ -318,7 +359,7 @@ void TemplateManager::buildPartialOrder() {
 			const TClause& tb = templates[j];
 
 			if(ta.moreGeneralThan(tb)) {
-				std::cout << ta.toStr() << " <= " << tb.toStr() << std::endl;
+				//std::cout << ta.toStr() << " <= " << tb.toStr() << std::endl;
 				general_po[i].insert(j);
 				specific_po[j].insert(i);
 			}
@@ -327,6 +368,40 @@ void TemplateManager::buildPartialOrder() {
 
 	normalizePO();
 }
+
+std::set<int> TemplateManager::getMostGeneral() {
+	std::set<int> res;
+	const int sz = templates.size();
+	for(int i=0;i<sz;++i) {
+		if( specific_po[i].size() == 0 ) {
+			res.insert(i);
+		}
+	}
+	return res;
+}
+
+std::set<int> TemplateManager::getMostSpecific() {
+	std::set<int> res;
+	const int sz = templates.size();
+	for(int i=0;i<sz;++i) {
+		if( general_po[i].size() == 0 ) {
+			res.insert(i);
+		}
+	}
+	return res;
+}
+
+std::set<int> TemplateManager::getIndependent() {
+	std::set<int> res;
+	const int sz = templates.size();
+	for(int i=0;i<sz;++i) {
+		if( general_po[i].size() == 0 && specific_po[i].size() == 0 ) {
+			res.insert(i);
+		}
+	}
+	return res;
+}
+
 
 std::vector<TClause> TemplateManager::findAllPossilbeMatchings(const TRelation& rel) const {
 	std::vector<TClause> res;

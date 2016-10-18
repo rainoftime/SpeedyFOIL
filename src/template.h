@@ -68,6 +68,7 @@ struct TClause {
 
 	bool moreGeneralThan(const TClause& tc) const;
 
+	bool existDisconnectedPred() const;
 	std::string toStr() const;
 };
 
@@ -126,6 +127,13 @@ struct TemplateManager {
 
 	void buildPartialOrder();
 	void normalizePO();
+
+	std::set<int> getMostGeneral();
+	std::set<int> getMostSpecific();
+	std::set<int> getIndependent();
+
+
+	void logPO2dot(std::string f) {}
 
 	std::vector<TClause> findAllPossilbeMatchings(const TRelation&) const;
 

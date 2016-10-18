@@ -215,8 +215,9 @@ int main(int Argc, char *Argv[])
 		case 'T':
 			s = std::string(optarg);
 			M.tm.loadTemplates(s);
-			M.tm.showTemplates();
-			M.tm.buildPartialOrder();
+			std::cout << "Number of templates: " << M.tm.templates.size() << std::endl;
+			//M.tm.showTemplates();
+			//M.tm.buildPartialOrder();
 			break;
 
 		case '?':

@@ -156,13 +156,26 @@ void Matching::work2(){
 
 		std::cout << "Relation: " << rel.getRelNameWithTypes( ) << std::endl;
 		std::vector<TClause> candidates = tm.findAllPossilbeMatchings(rel);
+		std::vector<TClause> useful_templates;
 
 		for(const TClause& tc : candidates) {
 			std::vector<IClause> Ms = findMatchingsWithTemplate(rel, tc);
 			if(Ms.size()) {
 				std::cout << ">> Template: " << tc.toStr() << ",  matches: " << Ms.size() << std::endl;
+
+				useful_templates.push_back(tc);
 			}
 		}
+
+		TemplateManager tempM;
+		tempM.templates = std::move(useful_templates);
+		tempM.buildPartialOrder();
+
+		std::cout << "overall templates: " << tempM.templates.size() << std::endl;
+		std::cout << "most general: " << tempM.getMostGeneral().size() << std::endl;
+		std::cout << "most specific: " << tempM.getMostSpecific().size() << std::endl;
+		std::cout << "most general: " << tempM.getIndependent().size() << std::endl;
+
 
 	}
 }
