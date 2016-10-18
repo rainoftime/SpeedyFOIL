@@ -149,5 +149,23 @@ void Matching::work() {
 	std::cout << ss.str() << std::endl;
 }
 
+void Matching::work2(){
+	std::vector<IClause> matchings;
+
+	for(TRelation& rel : relm.vIDBRel) {
+
+		std::cout << "Relation: " << rel.getRelNameWithTypes( ) << std::endl;
+		std::vector<TClause> candidates = tm.findAllPossilbeMatchings(rel);
+
+		for(const TClause& tc : candidates) {
+			std::vector<IClause> Ms = findMatchingsWithTemplate(rel, tc);
+			if(Ms.size()) {
+				std::cout << ">> Template: " << tc.toStr() << ",  matches: " << Ms.size() << std::endl;
+			}
+		}
+
+	}
+}
+
 }  // end of namespace SpeedyFOIL
 

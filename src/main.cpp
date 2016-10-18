@@ -216,6 +216,7 @@ int main(int Argc, char *Argv[])
 			s = std::string(optarg);
 			M.tm.loadTemplates(s);
 			M.tm.showTemplates();
+			M.tm.buildPartialOrder();
 			break;
 
 		case '?':
@@ -369,7 +370,8 @@ int main(int Argc, char *Argv[])
 
 	M.relm.loadRelations(RelnOrder, MaxRel+1);
 	M.relm.showRelations();
-	M.work();
+	//M.work();
+	M.work2();
 
 
 	if(testSpeedy) {

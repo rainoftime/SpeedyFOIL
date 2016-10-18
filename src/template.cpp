@@ -4,6 +4,7 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <algorithm>
 
 namespace SpeedyFOIL {
 
@@ -41,6 +42,94 @@ std::string formatTPredicate(const TPredicate& pred, const TRelation& rel){
 	ss << ")";
 
 	return ss.str();
+}
+
+bool patternMatched(const TPredicate& pred1, const TPredicate& pred2, std::map<int, int>& relMap,
+		std::map<int, int>& varMap) {
+	if(pred1.arity != pred2.arity) {
+		return false;
+	}
+
+	auto it = relMap.find(pred1.pid);
+	if(it != relMap.end() && it->second != pred2.pid) {
+		return false;
+	}
+
+	for(int i = 0; i < pred1.arity; ++i) {
+		auto it2 = varMap.find( pred1.vdom[i] );
+		if(it2 != varMap.end() && it2->second != pred2.vdom[i]){
+			return false;
+		}
+	}
+
+	// enforce match, update relMap/ varMap
+	if(it == relMap.end()){
+		relMap.insert( std::make_pair(pred1.pid, pred2.pid) );
+	}
+
+	for(int i = 0; i < pred1.arity; ++i) {
+		auto it2 = varMap.find( pred1.vdom[i] );
+		if(it2 == varMap.end()) {
+			varMap.insert( std::make_pair(pred1.vdom[i], pred2.vdom[i]) );
+		}
+	}
+
+	return true;
+}
+
+bool quickCheckGeneral(const std::vector<TPredicate>& rb1, const std::vector<TPredicate>& rb2) {
+	std::set<int> st1, st2;
+	for(auto & x : rb1) st1.insert( x.arity );
+	for(auto & x : rb2) st2.insert( x.arity );
+
+	for(auto x : st1) {
+		if(st2.find(x) == st2.end()) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+bool moreGeneral(int i, int j, const std::vector<TPredicate>& rb1,
+		const std::vector<TPredicate>& rb2, std::map<int, int>& relMap,
+		std::map<int, int>& varMap) {
+
+	// check termination
+	if(i == rb1.size()){
+		return true;
+	}
+
+	std::map<int,int> localRelMap = relMap;
+	std::map<int,int> localVarMap = varMap;
+
+	// i-th Predicate match the j-th Predicate
+	if (j < rb2.size()) {
+		if (patternMatched(rb1[i], rb2[j], relMap, varMap)) {
+			if (moreGeneral(i + 1, j + 1, rb1, rb2, relMap, varMap)) {
+				return true;
+			}
+
+			// restore relMap, varMap
+			relMap = localRelMap;
+			varMap = localVarMap;
+		}
+	}
+
+	// i-th Predicate matches some k-th (k < j)
+	for(int k = 0; k < j; ++k) {
+		if(patternMatched(rb1[i], rb2[k], relMap, varMap)) {
+			if( moreGeneral(i+1, j, rb1, rb2, relMap, varMap) ) {
+				return true;
+			}
+
+			// restore relMap, varMap
+			relMap = localRelMap;
+			varMap = localVarMap;
+		}
+	}
+
+	return false;
 }
 
 } // namespace anonymous
@@ -90,6 +179,52 @@ std::string TClause::toStr() const {
 	return ss.str();
 }
 
+bool TClause::moreGeneralThan(const TClause& tc) const {
+
+	if(! quickCheckGeneral(vbody, tc.vbody)){
+		return false;
+	}
+
+	std::map<int,int> relMap;
+	std::map<int,int> varMap;
+
+	if(! patternMatched(hd, tc.hd, relMap, varMap)  ) {
+		return false;
+	}
+
+	std::vector<int> vi;
+	const std::vector<TPredicate>& body = tc.vbody;
+	int ct = 1;
+	for(int i = 0; i < body.size(); ++i) {
+		vi.push_back(i);
+		ct *= i+1;
+	}
+
+	// test all permutation of tc.vbody, the cost is not too huge as |vbody| <= 8
+	while(ct --) {
+
+		// setup
+		std::map<int,int> cpRelMap = relMap;
+		std::map<int,int> cpVarMap = varMap;
+
+		std::vector<TPredicate> tv(body.size());
+
+		for(int i=0; i< body.size(); ++i) {
+			tv[i] = body[ vi[i] ];
+		}
+
+		// test
+		if(moreGeneral(0,0, vbody, tv, cpRelMap, cpVarMap)) {
+			std::cout << "great! find one more general case" << std::endl;
+			return true;
+		}
+
+		// try next
+		std::next_permutation(vi.begin(), vi.end());
+	}
+
+	return false;
+}
 
 void IClause::explain() const{
 	std::cout << "One possible instantiation: " << std::endl;
@@ -138,6 +273,59 @@ void TemplateManager::showTemplates() const {
 	for (const TClause& cl : templates) {
 		std::cout << cl.toStr() << std::endl;
 	}
+}
+
+void TemplateManager::normalizePO() {
+	const int sz = templates.size();
+	std::cout << "normalizing PO..\n";
+	for(int i=0;i< sz; ++i) {
+		std::set<int> mark;
+		for(int x : general_po[i]){
+			std::set<int> st = general_po[x];
+			if( st.find(i) != st.end()){
+				int sz1 = templates[i].vbody.size();
+				int sz2 = templates[x].vbody.size();
+				if(sz1 > sz2) {
+					mark.insert(x);
+					std::cout << templates[i].toStr() << "  vs  " << templates[x].toStr() << std::endl;
+				}
+				else if(sz1 == sz2){
+					std::cout << "equivalent templates: " << templates[i].toStr() << "  vs  " << templates[x].toStr() << std::endl;
+				}
+			}
+		}
+
+		for(int x : mark){
+			general_po[i].erase(x);
+			specific_po[x].erase(i);
+		}
+	}
+
+}
+
+
+void TemplateManager::buildPartialOrder() {
+	const int sz = templates.size();
+	for(int i=0;i< sz; ++i) {
+
+		std::cout<< "buildPartialOrder, i=" << i << std::endl;
+
+		const TClause& ta = templates[i];
+		for(int j=0; j < sz; ++j) {
+			if(i==j) {
+				continue;
+			}
+			const TClause& tb = templates[j];
+
+			if(ta.moreGeneralThan(tb)) {
+				std::cout << ta.toStr() << " <= " << tb.toStr() << std::endl;
+				general_po[i].insert(j);
+				specific_po[j].insert(i);
+			}
+		}
+	}
+
+	normalizePO();
 }
 
 std::vector<TClause> TemplateManager::findAllPossilbeMatchings(const TRelation& rel) const {

@@ -6,6 +6,7 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <set>
 #include <iostream>
 
 namespace SpeedyFOIL {
@@ -40,6 +41,13 @@ struct TPredicate {
 		return *this;
 	}
 
+	TPredicate& operator = (const TPredicate& pr) {
+		pid = pr.pid;
+		arity = pr.arity;
+		vdom = pr.vdom;
+		return *this;
+	}
+
 	std::string toStr() const;
 };
 
@@ -57,6 +65,8 @@ struct TClause {
 		vbody = std::move(cl.vbody);
 		return *this;
 	}
+
+	bool moreGeneralThan(const TClause& tc) const;
 
 	std::string toStr() const;
 };
@@ -107,8 +117,15 @@ struct IClause {
 struct TemplateManager {
 	std::vector<TClause> templates;
 
+	std::map<int, std::set<int>> general_po;
+	std::map<int, std::set<int>> specific_po;
+
+
 	void loadTemplates(std::string fpath);
 	void showTemplates() const;
+
+	void buildPartialOrder();
+	void normalizePO();
 
 	std::vector<TClause> findAllPossilbeMatchings(const TRelation&) const;
 
@@ -156,6 +173,7 @@ struct Matching {
 		  std::vector<std::vector<TRelation>>& results) const;
 
   void work();
+  void work2();
 };
 
 
