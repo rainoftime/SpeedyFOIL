@@ -176,6 +176,7 @@ void Matching::work2(){
 		std::cout << "most specific: " << tempM.getMostSpecific().size() << std::endl;
 		std::cout << "most general: " << tempM.getIndependent().size() << std::endl;
 
+		tempM.logPO2dot( rel.getRelName() + ".dot" );
 
 	}
 }

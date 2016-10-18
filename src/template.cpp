@@ -413,6 +413,30 @@ std::vector<TClause> TemplateManager::findAllPossilbeMatchings(const TRelation& 
 	return res;
 }
 
+void TemplateManager::logPO2dot(std::string fpath) {
+	std::ofstream fout(fpath);
+	fout << "digraph G {\n";
+
+	const int sz = templates.size();
+	for (int i = 0; i < sz; ++i) {
+		if (general_po[i].size()) {
+			fout << "v" << i << " -> {";
+			for (int x : general_po[i]) {
+				fout <<"v" << x << " ";
+			}
+			fout << " };\n";
+		}
+	}
+
+	for (int i = 0; i < sz; ++i) {
+		fout << "v" << i << " [label=\"" << templates[i].toStr() << "\"];\n";
+	}
+
+	fout << "}\n";
+
+	fout.close();
+}
+
 std::vector<std::string> TRelation::getStrs() const {
 	std::vector<std::string> res;
 	res.push_back( getRelName() );

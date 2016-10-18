@@ -133,7 +133,7 @@ struct TemplateManager {
 	std::set<int> getIndependent();
 
 
-	void logPO2dot(std::string f) {}
+	void logPO2dot(std::string f);
 
 	std::vector<TClause> findAllPossilbeMatchings(const TRelation&) const;
 
