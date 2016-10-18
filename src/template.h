@@ -8,6 +8,7 @@
 #include <map>
 #include <set>
 #include <iostream>
+#include <algorithm>
 
 namespace SpeedyFOIL {
 
@@ -48,6 +49,14 @@ struct TPredicate {
 		return *this;
 	}
 
+
+	bool operator == (const TPredicate& pr) const {
+		return pid == pr.pid
+				&& arity == pr.arity
+				&& arity == vdom.size()
+				&& std::equal(vdom.begin(), vdom.end(), pr.vdom.begin());
+	}
+
 	std::string toStr() const;
 };
 
@@ -66,7 +75,13 @@ struct TClause {
 		return *this;
 	}
 
-	bool moreGeneralThan(const TClause& tc) const;
+	bool operator == (const TClause& tc) const {
+		return hd == tc.hd
+				&& vbody.size() == tc.vbody.size()
+				&& std::equal(vbody.begin(), vbody.end(), tc.vbody.begin());
+	}
+
+	bool moreGeneralThan(const TClause& tc, std::map<int,int>&, std::map<int,int>&) const;
 
 	bool existDisconnectedPred() const;
 	bool existUnboundVarInHead() const;
@@ -122,6 +137,9 @@ struct TemplateManager {
 	std::map<int, std::set<int>> general_po;
 	std::map<int, std::set<int>> specific_po;
 
+	typedef std::map<int,int> PII;
+	std::map<int, std::map<int, std::pair<PII,PII> >> general_proof;
+
 
 	void loadTemplates(std::string fpath);
 	void showTemplates() const;
@@ -141,18 +159,21 @@ struct TemplateManager {
 	TemplateManager(TemplateManager&& tm) noexcept :
 			templates(std::move(tm.templates)),
 			general_po(std::move(tm.general_po)),
-			specific_po(std::move(tm.specific_po)) {}
+			specific_po(std::move(tm.specific_po)),
+			general_proof(std::move(tm.general_proof)) {}
 
 	TemplateManager& operator = (TemplateManager&& tm) noexcept {
 		templates = std::move(tm.templates);
 		general_po = std::move(tm.general_po);
 		specific_po = std::move(tm.specific_po);
+		general_proof = std::move(tm.general_proof);
 
 		return *this;
 	}
 
 	std::vector<TClause> findAllPossilbeMatchings(const TRelation&) const;
 
+	int indexOf(const TClause& tc) const;
 };
 
 

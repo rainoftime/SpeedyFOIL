@@ -233,14 +233,11 @@ bool TClause::existUnboundVarInHead() const {
 }
 
 
-bool TClause::moreGeneralThan(const TClause& tc) const {
+bool TClause::moreGeneralThan(const TClause& tc, std::map<int,int>& relMap, std::map<int,int>& varMap) const {
 
 	if(! quickCheckGeneral(vbody, tc.vbody)){
 		return false;
 	}
-
-	std::map<int,int> relMap;
-	std::map<int,int> varMap;
 
 	if(! patternMatched(hd, tc.hd, relMap, varMap)  ) {
 		return false;
@@ -254,24 +251,26 @@ bool TClause::moreGeneralThan(const TClause& tc) const {
 		ct *= i+1;
 	}
 
+	// setup
+	std::map<int,int> cpRelMap = relMap;
+	std::map<int,int> cpVarMap = varMap;
+
 	// test all permutation of tc.vbody, the cost is not too huge as |vbody| <= 8
 	while(ct --) {
 
-		// setup
-		std::map<int,int> cpRelMap = relMap;
-		std::map<int,int> cpVarMap = varMap;
-
 		std::vector<TPredicate> tv(body.size());
-
 		for(int i=0; i< body.size(); ++i) {
 			tv[i] = body[ vi[i] ];
 		}
 
 		// test
-		if(moreGeneral(0,0, vbody, tv, cpRelMap, cpVarMap)) {
+		if(moreGeneral(0,0, vbody, tv, relMap, varMap)) {
 			//std::cout << "great! find one more general case" << std::endl;
 			return true;
 		}
+
+		relMap = cpRelMap;
+		varMap = cpVarMap;
 
 		// try next
 		std::next_permutation(vi.begin(), vi.end());
@@ -376,10 +375,23 @@ void TemplateManager::buildPartialOrder() {
 			}
 			const TClause& tb = templates[j];
 
-			if(ta.moreGeneralThan(tb)) {
-				//std::cout << ta.toStr() << " <= " << tb.toStr() << std::endl;
+			std::map<int,int> relMap;
+			std::map<int,int> varMap;
+
+			if(ta.moreGeneralThan(tb, relMap, varMap)) {
+//				std::cout << ta.toStr() << " <<= " << tb.toStr() << std::endl;
+//				for(auto pr : relMap){
+//					std::cout <<"  P" << pr.first << " --> P" << pr.second << std::endl;
+//				}
+//				for(auto pr : varMap){
+//					std::cout <<"  v" << pr.first << " --> v" << pr.second << std::endl;
+//				}
+
 				general_po[i].insert(j);
 				specific_po[j].insert(i);
+
+				general_proof[i][j] = std::make_pair(std::move(relMap), std::move(varMap));
+
 			}
 		}
 	}
