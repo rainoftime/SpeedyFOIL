@@ -5,48 +5,36 @@ OUT_DIR = _build/
 
 CFLAGS = -g -std=c++11
 
-ORG_SRC_Names = global main input output state literal evaluatelit search determinate order \
- 	join utility finddef interpret prune constants 
+SRC_Names = global main input output state literal evaluatelit search determinate order \
+ 	join utility finddef interpret prune constants template matching datalog
 
-NEW_SRC_Names = template matching datalog
+SRC = $(addprefix $(SRC_DIR), $(addsuffix .cpp, $(SRC_Names)))
+OBJ = $(addprefix $(OUT_DIR), $(notdir $(SRC:.cpp=.o)))
 
-ORG_SRC = $(addprefix $(SRC_DIR), $(addsuffix .cpp, $(ORG_SRC_Names)))
-NEW_SRC = $(addprefix $(SRC_DIR), $(addsuffix .cpp, $(NEW_SRC_Names)))
-
-ORG_OBJ = $(addprefix $(OUT_DIR), $(notdir $(ORG_SRC:.cpp=.o)))
-NEW_OBJ = $(addprefix $(OUT_DIR), $(notdir $(NEW_SRC:.cpp=.o)))
-
-OBJ = $(ORG_OBJ) $(NEW_OBJ)
-
-ifeq ($(MAKECMDGOALS),clean)
-	# doing clean, so dont make deps.
-	deps=
-else
-	# doing build, so make deps.
-	deps=$(srcs:.cpp=.d)
-
-endif
 
 foil: $(OBJ) Makefile
 	$(CC) $(CFLAGS) $(OBJ) -o $@
 
-$(OBJ): $(SRC_DIR)/defns.h $(SRC_DIR)/extern.h
+ifeq ($(MAKECMDGOALS),clean)
+# doing clean, so dont make deps.
+DEPS=
+else
+# doing build, so make deps.
+DEPS = $(addprefix $(OUT_DIR), $(notdir $(SRC:.cpp=.d)))
 
-#$(NEW_OBJ):$(OUT_DIR)%.o: $(SRC_DIR)%.h
-$(NEW_OBJ): $(SRC_DIR)/template.h $(SRC_DIR)/matching.h  $(SRC_DIR)/datalog.h 
+$(OUT_DIR)%.d: $(SRC_DIR)%.cpp
+	$(CC) -MM -MT '$(patsubst $(SRC_DIR)%.cpp,$(OUT_DIR)%.o,$<)' $< > $@
+	
+-include $(DEPS)
+endif
 
 
 $(OUT_DIR)%.o: $(SRC_DIR)%.cpp
 	$(CC) $(CFLAGS) -c $< -o $@
 
 
-.PHONY: clean
+.PHONY: clean all
 
-
-#matching: src/template.cpp  src/template.h
-#	$(CC) $(CFLAGS) src/matching.cpp 
-
-#all: foil clause_template matching
 all: foil
 
 clean:
