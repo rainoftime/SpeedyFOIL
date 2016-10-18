@@ -10,6 +10,8 @@ foil
 # temporary files
 *.cpp~
 *.i~
+*.h~
+*.c~
 
 # Compiled Object files
 *.slo

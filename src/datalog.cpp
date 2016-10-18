@@ -1,9 +1,57 @@
 
 #include "datalog.h"
 
+
+#include <vector>
+#include <iostream>
+#include <algorithm>
+
 namespace SpeedyFOIL {
 
-void DatalogProgram::exploreCandidateRules() {
+std::set<int> IDBTR::extractRules(const std::set<int>& tmpls) const {
+	std::set<int> res;
+	for (const int x : tmpls) {
+		auto it = tmpl2rules.find(x);
+		if(it == tmpl2rules.end()) {
+			continue;
+		}
+
+		for (const int e : it->second) {
+			res.insert(e);
+		}
+	}
+	return res;
+}
+
+// assume tm, rules  are already given
+// initialize tmpl2rules, mostG, mostS
+void IDBTR::init(){
+	const int num_rules = rules.size();
+	const int num_tmpls = tm.templates.size();
+
+	// initialize tmpl2rules
+	tmpl2rules.clear();
+
+	for(int i=0; i < num_rules; ++i) {
+		const IClause& cl = rules[i];
+		int j = std::find(tm.templates.begin(), tm.templates.end(), cl.tc) - tm.templates.begin();
+		if(j < num_tmpls) {
+			tmpl2rules[j].insert(i);
+		}
+		else {
+			std::cerr << "ERROR: IDBTR::int() cannot find template " << cl.tc.toStr() << " in tm\n";
+		}
+	}
+
+	// initialize mostG/S
+	//mostG.clear();
+	//mostG.insert( extractRules(tm.getMostGeneral()) );
+	//mostS.clear();
+	//mostS.insert( extractRules(tm.getMostSpecific()) );
+
+}
+
+void DPManager::exploreCandidateRules() {
 	for(const TRelation& rel : M.relm.vIDBRel) {
 
 		std::cout << "Relation: " << rel.getRelNameWithTypes( ) << std::endl;
@@ -35,7 +83,7 @@ void DatalogProgram::exploreCandidateRules() {
 		std::cout << "most specific: " << tempM.getMostSpecific().size() << std::endl;
 		std::cout << "independent: " << tempM.getIndependent().size() << std::endl;
 
-		tempM.logPO2dot( rel.getRelName() + ".dot" );
+		//tempM.logPO2dot( rel.getRelName() + ".dot" );
 
 		IDBTR idb;
 		idb.tm = std::move(tempM);

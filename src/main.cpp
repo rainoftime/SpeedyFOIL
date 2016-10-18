@@ -104,7 +104,7 @@ int main(int Argc, char *Argv[])
 	char Line[200], PlusOrMinus;
 
 	SpeedyFOIL::Matching M;
-	SpeedyFOIL::DatalogProgram DP(M);
+	SpeedyFOIL::DPManager DP(M);
 	std::string s;
 
 
