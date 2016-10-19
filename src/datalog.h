@@ -85,6 +85,10 @@ struct DPManager {
 	std::set<DatalogProgram> Ss;
 
 
+	std::map< std::vector<int>, std::pair<int,int> > vote_stats;
+
+	std::vector< std::vector<int> > execute(const DatalogProgram&);
+
 
 	DPManager(const Matching& match) : M(match) {}
 
