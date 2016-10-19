@@ -5,6 +5,8 @@
 #include <vector>
 #include <iostream>
 #include <algorithm>
+#include <z3++.h>
+
 
 namespace SpeedyFOIL {
 
@@ -248,8 +250,125 @@ void DPManager::initGS() {
 	init_helper(true);
 	std::cout << "Gs.size = " << Gs.size() << std::endl;
 
-	init_helper(false);
-	std::cout << "Ss.size = " << Ss.size() << std::endl;
+	//init_helper(false);
+	//std::cout << "Ss.size = " << Ss.size() << std::endl;
+
+	execute( *Gs.begin() );
 }
+
+std::vector< std::vector<int> > DPManager::execute(const DatalogProgram& dp) {
+	std::vector< std::vector<int> > res2;
+
+	  z3::set_param("fixedpoint.engine", "datalog");
+
+	  z3::context c;
+
+	  //c.set("engine", "datalogxxx");
+
+
+	  //z3::sort bv3 = c.int_sort(); //
+	  z3::sort bv3 = c.bv_sort(3); //
+	  z3::sort bl = c.bool_sort();
+
+	  z3::func_decl edge = c.function("edge", bv3, bv3, bl);
+	  z3::func_decl path = c.function("path", bv3, bv3, bl);
+	  z3::func_decl p = c.function("p", bv3, bl);
+
+	  z3::expr va = c.constant("a", bv3);
+	  z3::expr vb = c.constant("b", bv3);
+	  z3::expr vc = c.constant("c", bv3);
+
+	  z3::expr r1 = z3::forall(va, vb, z3::implies( edge(va,vb), path(va,vb) ));
+
+
+	  z3::expr_vector ev(c); // this should be defined before fp, otherwise will crash
+	  ev.push_back( edge(va,vb) );
+	  ev.push_back( path(vb,vc) );
+	  z3::expr r2 = z3::forall(va, vb, vc, z3::implies( z3::mk_and(ev), path(va,vc) ));
+
+	  //z3::expr r2 = z3::implies( z3::mk_and(ev), path(va,vc) );
+
+	  //z3::expr r2 = z3::forall(va, vb, vc, z3::implies(  edge(va,vb) && path(vb,vc) , path(va,vc) ));
+	  //z3::expr r2 = z3::forall(va, vb, vc, z3::implies( edge(va,vb), path(va,vc) ));
+
+
+	  z3::symbol s_r1 = c.str_symbol("r1");
+	  z3::symbol s_r2 = c.str_symbol("r2");
+
+	  z3::expr v1 = c.bv_val(1, 3); // c.int_val(1); //
+	  z3::expr v2 = c.bv_val(2, 3); // c.int_val(2); //
+	  z3::expr v3 = c.bv_val(3, 3); // c.int_val(3); //
+	  z3::expr v4 = c.bv_val(4, 3); // c.int_val(4); //
+
+//	  z3::expr v1 =  c.int_val(1); //
+//	  z3::expr v2 =  c.int_val(2); //
+//	  z3::expr v3 =  c.int_val(3); //
+//	  z3::expr v4 =  c.int_val(4); //
+
+
+	  Z3_fixedpoint fp = Z3_mk_fixedpoint( c );
+	  Z3_fixedpoint_register_relation(c, fp, edge);
+	  Z3_fixedpoint_register_relation(c, fp, path);
+	  Z3_fixedpoint_register_relation(c, fp, p);
+
+	  Z3_fixedpoint_add_rule(c, fp, r1, s_r1);
+	  Z3_fixedpoint_add_rule(c, fp, r2, s_r2);
+
+	  z3::symbol name = c.str_symbol("");
+	  Z3_fixedpoint_add_rule(c, fp, edge(v1, v2), name);
+	  Z3_fixedpoint_add_rule(c, fp, edge(v1, v3), name);
+	  Z3_fixedpoint_add_rule(c, fp, edge(v2, v4), name);
+
+
+
+	  Z3_lbool res = Z3_fixedpoint_query (c, fp, z3::exists(va,vb,path(va,vb)) );
+
+
+	  std::cout << "res = " << res << std::endl;
+
+	  if(res == Z3_L_FALSE) {
+	    std::cout << "res is L_false" << std::endl;
+	  }
+	  else if(res == Z3_L_UNDEF) {
+	    std::cout << "res is L_undef" << std::endl;
+	  }
+	  else if(res == Z3_L_TRUE) {
+	    std::cout << "res is L_true" << std::endl;
+	  }
+	  else {
+	    std::cout << "res is unknown value" << std::endl;
+	  }
+
+
+	  Z3_ast ast_res = Z3_fixedpoint_get_answer(c,fp);
+
+	  //z3::ast detailed_res (c, ast_res);
+	  z3::expr detailed_res (c, ast_res);
+
+	  if(detailed_res.is_app()) {
+	    std::cout << "detailed_res is app" << std::endl;
+
+	    int n_args = detailed_res.num_args();
+	    std::cout << "number of args: " << n_args << std::endl;
+	    for(int i=0; i < n_args; ++i) {
+	    	z3::expr e = detailed_res.arg(i);
+	    	std::cout << i << "-th arg: " << e << std::endl;
+
+	    	int m_args = e.num_args();
+	    	for(int j=0; j< m_args; ++j){
+	    		z3::expr e2 = e.arg(j);
+	    		int x;
+	    		Z3_get_numeral_int(c, e2.arg(1), &x);
+	    		std::cout <<"   " << e.arg(j) << ",  " << e2.arg(1) << ", x=" << x << std::endl;
+	    	}
+	    }
+
+	  }
+
+	  std::cout << detailed_res << std::endl;
+
+	return res2;
+}
+
 
 } // end of namespace SpeedyFOIL
