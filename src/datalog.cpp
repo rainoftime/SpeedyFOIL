@@ -10,6 +10,40 @@ namespace SpeedyFOIL {
 
 int DatalogProgram::programCt = 0;
 
+namespace {
+
+std::vector<std::set<int>> chooseK_helper(int n, int i, const std::vector<int>& v) {
+	std::vector<std::set<int>> res;
+
+	if(n > v.size()){
+		return res;
+	}
+
+	if (i == 0 || n == 0) {
+		res.push_back( std::set<int>() );
+		return res;
+	}
+
+	auto encode = [&v](int x) {return v[x-1];};
+
+	// choose n
+	std::vector<std::set<int>> tmp1 = chooseK_helper(n-1, i-1, v);
+	for(std::set<int>& x : tmp1) {
+		x.insert( encode(n) );
+		res.push_back( std::move(x) );
+	}
+
+	// don't choose n
+	std::vector<std::set<int>> tmp2 = chooseK_helper(n-1, i, v);
+	for(std::set<int>& x : tmp2) {
+		res.push_back( std::move(x) );
+	}
+
+	return res;
+}
+
+} // end of anonymous namespace
+
 std::set<int> IDBTR::extractRules(const std::set<int>& tmpls) const {
 	std::set<int> res;
 	for (const int x : tmpls) {
@@ -64,6 +98,28 @@ std::set<int> IDBTR::specialize(int rule_index) const{
 }
 
 
+std::vector<std::set<int>> IDBTR::chooseK(int k, bool general) const {
+	if(k >= 3) {
+		std::vector<std::set<int>> res;
+		std::cerr << "K is too large: " << k << std::endl;
+		return res;
+	}
+
+	std::set<int> st;
+
+	if(general) {
+		st = extractRules( tm.getMostGeneral() );
+	}
+	else{
+		st = extractRules( tm.getMostSpecific() );
+	}
+
+	std::vector<int> v(st.begin(), st.end());
+
+	return chooseK_helper(v.size(), k, v);
+}
+
+
 void DPManager::exploreCandidateRules() {
 	for(const TRelation& rel : M.relm.vIDBRel) {
 
@@ -98,7 +154,7 @@ void DPManager::exploreCandidateRules() {
 
 		//tempM.logPO2dot( rel.getRelName() + ".dot" );
 
-		IDBTR idb;
+		IDBTR idb(rel);
 		idb.tm = std::move(tempM);
 		idb.rules = std::move(matchings);
 
@@ -106,6 +162,7 @@ void DPManager::exploreCandidateRules() {
 		idbRules.push_back( std::move(idb) );
 	}
 
+	initGS();
 }
 
 std::set<DatalogProgram> DPManager::refineProg(const DatalogProgram& prog, bool specialize) const {
@@ -143,6 +200,26 @@ std::set<DatalogProgram> DPManager::refineProg(const DatalogProgram& prog, bool 
 	return res;
 }
 
+void DPManager::initGS() {
 
+
+	//const IDBTR& idb = idbRules[k];
+
+	// for each IDB choose 1~2 rules
+
+	long long space = 1;
+
+	const int sz = idbRules.size();
+	for(int i=0; i<sz; ++i) {
+		const IDBTR& idb = idbRules[i];
+		std::vector<std::set<int>>  vst = idb.chooseK(2, true);
+
+		std::cout << "Relation: " << idb.rel.getRelNameWithTypes() << ", #rules: " << vst.size() << std::endl;
+		space *= vst.size();
+	}
+
+	std::cout << "space: " << space << std::endl;
+
+}
 
 } // end of namespace SpeedyFOIL

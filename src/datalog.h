@@ -14,6 +14,7 @@ struct IDBTR;
 
 // templates and rules for an IDB
 struct IDBTR {
+	TRelation rel;
 	TemplateManager tm;
 	std::vector<IClause> rules;
 
@@ -21,9 +22,10 @@ struct IDBTR {
 	//std::set<std::set<int> > mostG;
 	//std::set<std::set<int> > mostS;
 
-	IDBTR(){}
+	IDBTR(const TRelation & r) : rel(r){}
 
 	IDBTR(IDBTR&& idb) noexcept :
+			rel(idb.rel),
 			tm(std::move(idb.tm)),
 			rules(std::move(idb.rules)),
 			tmpl2rules(std::move(idb.tmpl2rules)) {}
@@ -31,6 +33,8 @@ struct IDBTR {
 			//mostS(std::move(idb.mostS)) {}
 
 	IDBTR& operator = (IDBTR&& idb) noexcept {
+		rel = idb.rel;
+
 		tm = std::move(idb.tm);
 		rules = std::move(idb.rules);
 		tmpl2rules = std::move(idb.tmpl2rules);
@@ -42,7 +46,9 @@ struct IDBTR {
 
 	void init();
 	std::set<int> extractRules(const std::set<int>&) const;
-	std::set<int> chooseK(int k) const;
+
+	std::vector<std::set<int>> chooseK(int k, bool general) const;
+
 	std::set<int> generalize(int rule_index) const;
 	std::set<int> specialize(int rule_index) const;
 
@@ -75,17 +81,21 @@ struct DPManager {
 	const Matching& M;
 	std::vector<IDBTR> idbRules;
 
-
 	std::set<DatalogProgram> Gs;
 	std::set<DatalogProgram> Ss;
 
-	std::set<DatalogProgram> generalizeProg(const DatalogProgram& prog) const;
-	std::set<DatalogProgram> refineProg(const DatalogProgram& prog, bool specialize) const;
 
 
 	DPManager(const Matching& match) : M(match) {}
 
 	void exploreCandidateRules();
+
+	std::set<DatalogProgram> refineProg(const DatalogProgram& prog, bool specialize) const;
+
+
+
+	void init_helper();
+	void initGS();
 
 	// execute rules
 
