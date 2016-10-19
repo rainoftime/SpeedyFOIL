@@ -147,9 +147,9 @@ struct TemplateManager {
 	void buildPartialOrder();
 	void normalizePO();
 
-	std::set<int> getMostGeneral();
-	std::set<int> getMostSpecific();
-	std::set<int> getIndependent();
+	std::set<int> getMostGeneral() const;
+	std::set<int> getMostSpecific() const;
+	std::set<int> getIndependent() const;
 
 
 	void logPO2dot(std::string f);

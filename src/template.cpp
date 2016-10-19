@@ -399,36 +399,41 @@ void TemplateManager::buildPartialOrder() {
 	normalizePO();
 }
 
-std::set<int> TemplateManager::getMostGeneral() {
+std::set<int> TemplateManager::getMostGeneral() const {
 	std::set<int> res;
 	const int sz = templates.size();
 	for(int i=0;i<sz;++i) {
-		if( specific_po[i].size() == 0 ) {
+		auto it = specific_po.find(i);
+		if( it == specific_po.end() || it->second.size() == 0) {
 			res.insert(i);
 		}
 	}
 	return res;
 }
 
-std::set<int> TemplateManager::getMostSpecific() {
+std::set<int> TemplateManager::getMostSpecific() const {
 	std::set<int> res;
 	const int sz = templates.size();
 	for(int i=0;i<sz;++i) {
-		if( general_po[i].size() == 0 ) {
+		auto it =general_po.find(i);
+		if( it == general_po.end() || it->second.size() == 0 ) {
 			res.insert(i);
 		}
 	}
 	return res;
 }
 
-std::set<int> TemplateManager::getIndependent() {
+std::set<int> TemplateManager::getIndependent() const {
 	std::set<int> res;
-	const int sz = templates.size();
-	for(int i=0;i<sz;++i) {
-		if( general_po[i].size() == 0 && specific_po[i].size() == 0 ) {
-			res.insert(i);
+	std::set<int> G = getMostGeneral();
+	std::set<int> S = getMostSpecific();
+
+	for(int x : G){
+		if(S.find(x) != S.end()){
+			res.insert(x);
 		}
 	}
+
 	return res;
 }
 
