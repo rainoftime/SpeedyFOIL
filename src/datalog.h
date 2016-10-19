@@ -94,7 +94,7 @@ struct DPManager {
 
 
 
-	void init_helper();
+	void init_helper(bool general);
 	void initGS();
 
 	// execute rules

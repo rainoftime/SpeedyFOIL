@@ -207,36 +207,16 @@ std::set<DatalogProgram> DPManager::refineProg(const DatalogProgram& prog, bool 
 }
 
 
-void DPManager::init_helper() {
-
-}
-
-void DPManager::initGS() {
-
+void DPManager::init_helper(bool general) {
 	std::vector< std::vector< std::set<int> > > VVS;
 
 	long long space = 1;
 	const int sz = idbRules.size();
 	for(int i=0; i<sz; ++i) {
 		const IDBTR& idb = idbRules[i];
-
-		// for each IDB choose 1~2 rules
-		std::vector<std::set<int>>  vst = idb.chooseK(2, true);
+		std::vector<std::set<int>>  vst = idb.chooseK(2, general);
 		space *= vst.size();
-
-
 		VVS.push_back( std::move(vst) );
-
-		/*
-		std::cout << "Relation: " << idb.rel.getRelNameWithTypes()
-				<< ", #combinations: " << vst.size() << std::endl;
-		for (const std::set<int>& s : vst) {
-			std::cout << "one combination: \n";
-			for (int x : s) {
-				std::cout << "   " << idb.rules[x].toStr() << std::endl;
-			}
-		}*/
-
 	}
 
 	std::cout << "space: " << space << std::endl;
@@ -254,10 +234,22 @@ void DPManager::initGS() {
 		}
 
 		dp.state = std::move(state);
-		Gs.insert(std::move(dp));
+		if(general) {
+			Gs.insert(std::move(dp));
+		}
+		else{
+			Ss.insert(std::move(dp));
+		}
 	}
 
+}
 
+void DPManager::initGS() {
+	init_helper(true);
+	std::cout << "Gs.size = " << Gs.size() << std::endl;
+
+	init_helper(false);
+	std::cout << "Ss.size = " << Ss.size() << std::endl;
 }
 
 } // end of namespace SpeedyFOIL
