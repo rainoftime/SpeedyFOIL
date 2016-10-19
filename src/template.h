@@ -128,6 +128,7 @@ struct IClause {
 		return *this;
 	}
 
+	std::string toStr() const;
 	void explain() const;
 };
 

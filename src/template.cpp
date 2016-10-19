@@ -29,7 +29,7 @@ std::string formatTPredicate(const TPredicate& pred, const TRelation& rel){
 	std::vector<std::string> strs = rel.getStrs();
 
 	if (pred.arity != strs.size() - 1) {
-		std::cerr << "Arity does not match with template " << std::endl;
+		std::cerr << "Error, formatTPredicate: Arity does not match with template " << std::endl;
 	}
 
 	ss << strs[0] << "(";
@@ -297,6 +297,24 @@ void IClause::explain() const{
 
 	std::cout << "." << std::endl;
 
+}
+
+std::string IClause::toStr() const {
+	std::stringstream ss;
+
+	ss << formatTPredicate(tc.hd, cl_hd) << " :- ";
+
+	const int n = tc.vbody.size();
+	for(int i=0; i < n; ++i) {
+		if(i) {
+			ss << ",";
+		}
+		ss << formatTPredicate(tc.vbody[i], cl_body[i]);
+	}
+
+	ss << "  from template: " << tc.toStr();
+
+	return ss.str();
 }
 
 // Template Encoding for rule: path(x,y) :- path(x,z), edge(z, y).

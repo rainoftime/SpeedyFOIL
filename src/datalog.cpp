@@ -56,6 +56,9 @@ std::set<int> IDBTR::extractRules(const std::set<int>& tmpls) const {
 			res.insert(e);
 		}
 	}
+
+	std::cout << "extractRules, tmpls.size = " << tmpls.size() << ", res.size=" << res.size() << std::endl;
+
 	return res;
 }
 
@@ -114,6 +117,9 @@ std::vector<std::set<int>> IDBTR::chooseK(int k, bool general) const {
 		st = extractRules( tm.getMostSpecific() );
 	}
 
+	std::cout << "chooseK in " << rel.getRelNameWithTypes() << std::endl;
+	std::cout << "st.size = " << st.size() <<std::endl;
+
 	std::vector<int> v(st.begin(), st.end());
 
 	return chooseK_helper(v.size(), k, v);
@@ -157,7 +163,7 @@ void DPManager::exploreCandidateRules() {
 		IDBTR idb(rel);
 		idb.tm = std::move(tempM);
 		idb.rules = std::move(matchings);
-
+		idb.init();
 
 		idbRules.push_back( std::move(idb) );
 	}
@@ -200,25 +206,57 @@ std::set<DatalogProgram> DPManager::refineProg(const DatalogProgram& prog, bool 
 	return res;
 }
 
+
+void DPManager::init_helper() {
+
+}
+
 void DPManager::initGS() {
 
-
-	//const IDBTR& idb = idbRules[k];
-
-	// for each IDB choose 1~2 rules
+	std::vector< std::vector< std::set<int> > > VVS;
 
 	long long space = 1;
-
 	const int sz = idbRules.size();
 	for(int i=0; i<sz; ++i) {
 		const IDBTR& idb = idbRules[i];
-		std::vector<std::set<int>>  vst = idb.chooseK(2, true);
 
-		std::cout << "Relation: " << idb.rel.getRelNameWithTypes() << ", #rules: " << vst.size() << std::endl;
+		// for each IDB choose 1~2 rules
+		std::vector<std::set<int>>  vst = idb.chooseK(2, true);
 		space *= vst.size();
+
+
+		VVS.push_back( std::move(vst) );
+
+		/*
+		std::cout << "Relation: " << idb.rel.getRelNameWithTypes()
+				<< ", #combinations: " << vst.size() << std::endl;
+		for (const std::set<int>& s : vst) {
+			std::cout << "one combination: \n";
+			for (int x : s) {
+				std::cout << "   " << idb.rules[x].toStr() << std::endl;
+			}
+		}*/
+
 	}
 
 	std::cout << "space: " << space << std::endl;
+
+	for(int p = 0; p < space; ++p) {
+		DatalogProgram dp (this);
+		std::map<int, std::set<int>> state;
+
+		int k = p;
+		for(int i = 0; i < sz; ++i) {
+			int j = k % VVS[i].size();
+			state [i] = VVS[i][j];
+
+			k = k / VVS[i].size();
+		}
+
+		dp.state = std::move(state);
+		Gs.insert(std::move(dp));
+	}
+
 
 }
 
