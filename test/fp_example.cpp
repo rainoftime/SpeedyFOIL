@@ -12,9 +12,15 @@ int main(){
 
   z3::context c;
 
-  z3::expr_vector ev(c); // debug experiences show that this should be defined before fp, otherwise code will crash
 
   Z3_fixedpoint fp = Z3_mk_fixedpoint( c );
+  Z3_fixedpoint_inc_ref(c,fp); 
+
+  // debug experiences show that this should be defined before fp, otherwise code will crash
+  // such weird issue got resolved by placing Z3_fixedpoint_inc_ref/Z3_fixedpoint_dec_ref at proper locations
+  z3::expr_vector ev(c); 
+
+
   
 
 #ifdef USE_BIT_VEC
@@ -104,6 +110,8 @@ int main(){
 
   }
   std::cout << detailed_res << std::endl;
+
+  Z3_fixedpoint_dec_ref(c,fp);
 
 
   return 0;
