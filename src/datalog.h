@@ -8,6 +8,8 @@
 
 namespace SpeedyFOIL {
 
+typedef std::vector< std::pair<Relation, std::vector<int>> > ConcreteRule;
+
 struct DPManager;
 struct DatalogProgram;
 struct IDBTR;
@@ -111,6 +113,8 @@ struct DPManager {
 
 	std::map< std::vector<int>, std::pair<int,int> > vote_stats;
 
+
+	std::vector<ConcreteRule> getConcreteRules(const DatalogProgram&);
 	std::vector< std::vector<int> > execute(const DatalogProgram&);
 
 

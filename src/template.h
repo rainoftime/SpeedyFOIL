@@ -130,6 +130,8 @@ struct IClause {
 
 	std::string toStr() const;
 	void explain() const;
+
+	std::vector< std::pair<Relation, std::vector<int>> > zip() const;
 };
 
 struct TemplateManager {

@@ -130,7 +130,7 @@ std::vector<std::set<int>> IDBTR::chooseK(int k, bool general) const {
 
 void DPManager::fillIDBValues() {
 
-	for(auto x : idbRules){
+	for(const IDBTR& x : idbRules){
 		const TRelation& tr = x.rel;
 
 		std::set<std::vector<int>> st;
@@ -284,6 +284,21 @@ void DPManager::initGS() {
 	//std::cout << "Ss.size = " << Ss.size() << std::endl;
 
 	execute( *Gs.begin() );
+}
+
+std::vector<ConcreteRule> DPManager::getConcreteRules(const DatalogProgram& dp) {
+	std::vector<ConcreteRule> res;
+
+	for(auto pr : dp.state) {
+		int idb_index = pr.first;
+		const IDBTR & idb = idbRules[idb_index];
+
+		for(auto r : pr.second) {
+			res.push_back( idb.rules[r].zip() );
+		}
+	}
+
+	return res;
 }
 
 std::vector< std::vector<int> > DPManager::execute(const DatalogProgram& dp) {

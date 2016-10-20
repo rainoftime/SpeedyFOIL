@@ -317,6 +317,19 @@ std::string IClause::toStr() const {
 	return ss.str();
 }
 
+std::vector< std::pair<Relation, std::vector<int>> > IClause::zip() const {
+	std::vector< std::pair<Relation, std::vector<int>> > res;
+
+	res.push_back( std::make_pair( cl_hd.pRel, tc.hd.vdom ) );
+
+	const int sz = cl_body.size();
+	for(int i=0; i < sz; ++i) {
+		res.push_back( std::make_pair( cl_body[i].pRel, tc.vbody[i].vdom ) );
+	}
+
+	return res;
+}
+
 // Template Encoding for rule: path(x,y) :- path(x,z), edge(z, y).
 // 2
 // 0 2 0 1
