@@ -35,6 +35,13 @@ void ValueManager::buildFuncDecls(Relation* RArr, int N) {
 	for(int i=START; i < END; ++i) {
 		Relation rel = RArr[i];
 
+		if(rel->Name[0] == '=' || rel->Name[0] == '>') {
+			continue;
+		}
+
+
+		std::cout << "process " << rel->Name << std::endl;
+
 		z3::sort_vector sv(C);
 
 		for(int j=1; j <= rel->Arity; ++j){

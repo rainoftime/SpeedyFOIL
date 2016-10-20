@@ -2,6 +2,7 @@
 #include  "extern.h"
 #include  "template.h"
 #include  "datalog.h"
+#include  "value.h"
 
 
 #include <iostream>
@@ -103,6 +104,7 @@ int main(int Argc, char *Argv[])
 	Tuple Case;
 	char Line[200], PlusOrMinus;
 
+	SpeedyFOIL::ValueManager VM;
 	SpeedyFOIL::Matching M;
 	SpeedyFOIL::DPManager DP(M);
 	std::string s;
@@ -370,6 +372,9 @@ int main(int Argc, char *Argv[])
 
 	printf("will test SpeedyFOIL soon...\n");
 
+
+	VM.buildSorts(Type, MaxType+1);
+	VM.buildFuncDecls(RelnOrder, MaxRel+1);
 
 	M.relm.loadRelations(RelnOrder, MaxRel+1);
 	M.relm.showRelations();
