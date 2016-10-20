@@ -21,6 +21,7 @@ struct EDBValue {
 struct ContextManager{
 	z3::context C;
 
+
 	int MaxBits;
 
 	std::map<TypeInfo, z3::sort> sortMap;

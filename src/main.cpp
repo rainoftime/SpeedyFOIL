@@ -8,6 +8,7 @@
 
 #include <iostream>
 #include <string>
+#include <z3++.h>
 
 /*  Read parameters and initialise variables  */
 
@@ -111,6 +112,7 @@ int main(int Argc, char *Argv[])
 	SpeedyFOIL::QueryEngine QE;
 	std::string s;
 
+	z3::set_param("fixedpoint.engine", "datalog");
 
 	/* Check overlaying of Const and float */
 	if (sizeof(Const) != sizeof(float)) {

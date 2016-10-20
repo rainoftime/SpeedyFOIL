@@ -52,7 +52,7 @@ void QueryEngine::execute_one_query() {
 	std::vector<ConcreteRule> rs = dp_ptr->getConcreteRules( *itx );
 
 	std::vector<z3::expr> z3_rs;
-	std::vector<std::pair<Relation, std::vector<int>>> queries;
+	std::set<std::pair<Relation, std::vector<int>>> queries;
 
 	for (ConcreteRule& r : rs) {
 		// define vars
@@ -74,7 +74,7 @@ void QueryEngine::execute_one_query() {
 
 		z3::expr head = helper(context, z3_vars, r[0]);
 
-		queries.push_back(r[0]);
+		queries.insert(r[0]);
 
 		z3::expr_vector ev(context);
 		const int n = r.size();
@@ -90,6 +90,8 @@ void QueryEngine::execute_one_query() {
 	}
 
 	Z3_fixedpoint fp = Z3_mk_fixedpoint(context);
+	Z3_fixedpoint_inc_ref(context,fp);
+
 	for (auto pr : cm_ptr->funcMap) {
 		Z3_fixedpoint_register_relation(context, fp, pr.second);
 	}
@@ -99,22 +101,28 @@ void QueryEngine::execute_one_query() {
 		Z3_fixedpoint_add_rule(context, fp, r, s_r1);
 	}
 
-	// Query
-	//Z3_lbool res = Z3_fixedpoint_query (c, fp, z3::exists(va,vb,path(va,vb)) );
+	cm_ptr->appendEDBConstr(fp);
 
+
+	// Query
 	for (auto Q : queries) {
 		Relation rel = Q.first;
 		z3::func_decl f = cm_ptr->funcMap.find(rel)->second;
 
 		std::set<int> vars(Q.second.begin(), Q.second.end());
 
-		std::map<int, z3::expr> z3_vars;
 		z3::expr_vector ex_vs(context);
+		std::map<int, z3::expr> z3_vars;
 		for (int x : vars) {
 			z3::expr vx = context.constant(str(x), bv_sort);
 			z3_vars.insert( std::make_pair(x, vx) );
 
 			ex_vs.push_back(vx);
+		}
+
+		std::cout << "z3_vars:\n";
+		for(auto pr : z3_vars) {
+			std::cout << "key=" << pr.first << ", value=" << pr.second << std::endl;
 		}
 
 		z3::expr_vector params(context);
@@ -123,8 +131,13 @@ void QueryEngine::execute_one_query() {
 			params.push_back( it->second );
 		}
 
+		std::cout << "parms: " << params << std::endl;
+
+		z3::expr query_expr = z3::exists(ex_vs, f(params));
+		std::cout << "query_expr: " << query_expr << std::endl;
+
 		Z3_lbool res = Z3_fixedpoint_query(context, fp,
-				z3::exists(ex_vs, f(params)));
+				query_expr);
 
 		std::cout << "res = " << res << std::endl;
 		if (res == Z3_L_FALSE) {
@@ -142,6 +155,9 @@ void QueryEngine::execute_one_query() {
 		std::cout << detailed_res << std::endl;
 
 	}
+
+	Z3_fixedpoint_dec_ref(context,fp);
+
 }
 
 } // end of namepsace SpeedyFOIL

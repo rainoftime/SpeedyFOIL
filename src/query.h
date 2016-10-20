@@ -17,6 +17,9 @@ namespace SpeedyFOIL {
 
 struct QueryEngine {
 
+	//std::shared_ptr<DPManager> dp_ptr;
+	//std::shared_ptr<ContextManager> cm_ptr;
+
 	std::unique_ptr<DPManager> dp_ptr;
 	std::unique_ptr<ContextManager> cm_ptr;
 
@@ -26,6 +29,12 @@ struct QueryEngine {
 			std::pair<Relation, std::vector<int>>& pair);
 
 	void execute_one_query();
+
+
+	~QueryEngine(){
+		dp_ptr.release();
+		cm_ptr.release();
+	}
 
 };
 
