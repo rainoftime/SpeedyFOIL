@@ -128,6 +128,36 @@ std::vector<std::set<int>> IDBTR::chooseK(int k, bool general) const {
 }
 
 
+void DPManager::fillIDBValues() {
+
+	for(auto x : idbRules){
+		const TRelation& tr = x.rel;
+
+		std::set<std::vector<int>> st;
+
+		Relation rel = tr.pRel;
+		Tuple* tp = rel->Pos;
+		while (*tp) {
+
+			std::vector<int> v;
+			for (int j = 1; j <= rel->Arity; ++j) {
+				v.push_back( (int) *tp[j]);
+			}
+
+			st.insert(std::move(v));
+
+			++tp;
+		}
+
+
+		IDBValue iv(tr);
+		iv.pos = std::move(st);
+
+		idbValues.push_back(std::move(iv));
+
+	}
+}
+
 void DPManager::exploreCandidateRules() {
 	for(const TRelation& rel : M.relm.vIDBRel) {
 
@@ -260,10 +290,10 @@ std::vector< std::vector<int> > DPManager::execute(const DatalogProgram& dp) {
 	std::vector< std::vector<int> > res2;
 
 	  z3::set_param("fixedpoint.engine", "datalog");
-
 	  z3::context c;
 
-	  //c.set("engine", "datalogxxx");
+
+
 
 
 	  //z3::sort bv3 = c.int_sort(); //

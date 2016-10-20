@@ -375,6 +375,7 @@ int main(int Argc, char *Argv[])
 
 	VM.buildSorts(Type, MaxType+1);
 	VM.buildFuncDecls(RelnOrder, MaxRel+1);
+	VM.loadEDBFacts(RelnOrder, MaxRel+1);
 
 	M.relm.loadRelations(RelnOrder, MaxRel+1);
 	M.relm.showRelations();

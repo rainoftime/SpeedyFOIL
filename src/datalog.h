@@ -84,11 +84,26 @@ struct IDBValue {
 
 	std::set< std::vector<int> > asked_pos;
 	std::set< std::vector<int> > asked_neg;
+
+	IDBValue(const TRelation& r) : rel(r) {}
+
+	IDBValue(const IDBValue&) = delete;
+
+	IDBValue(IDBValue&& iv) noexcept:
+			rel(iv.rel),
+			pos(std::move(iv.pos)),
+			asked_pos(std::move(iv.asked_pos)),
+			asked_neg(std::move(iv.asked_neg)){}
+
+	IDBValue operator=(IDBValue&&) = delete;
+
 };
+
 
 struct DPManager {
 	const Matching& M;
 	std::vector<IDBTR> idbRules;
+	std::vector<IDBValue> idbValues;
 
 	std::set<DatalogProgram> Gs;
 	std::set<DatalogProgram> Ss;
@@ -101,16 +116,14 @@ struct DPManager {
 
 	DPManager(const Matching& match) : M(match) {}
 
-	void exploreCandidateRules();
-
-	std::set<DatalogProgram> refineProg(const DatalogProgram& prog, bool specialize) const;
-
-
-
 	void init_helper(bool general);
 	void initGS();
 
-	// execute rules
+	void exploreCandidateRules();
+	void fillIDBValues(); // shoudl be called after exploreCandidateRules
+
+	std::set<DatalogProgram> refineProg(const DatalogProgram& prog, bool specialize) const;
+
 
 };
 
