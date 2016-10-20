@@ -3,6 +3,7 @@
 #include  "template.h"
 #include  "datalog.h"
 #include  "context.h"
+#include  "query.h"
 
 
 #include <iostream>
@@ -104,9 +105,10 @@ int main(int Argc, char *Argv[])
 	Tuple Case;
 	char Line[200], PlusOrMinus;
 
-	SpeedyFOIL::ContextManager VM;
+	SpeedyFOIL::ContextManager CM;
 	SpeedyFOIL::Matching M;
 	SpeedyFOIL::DPManager DP(M);
+	SpeedyFOIL::QueryEngine QE;
 	std::string s;
 
 
@@ -373,9 +375,9 @@ int main(int Argc, char *Argv[])
 	printf("will test SpeedyFOIL soon...\n");
 
 
-	VM.buildSorts(Type, MaxType+1);
-	VM.buildFuncDecls(RelnOrder, MaxRel+1);
-	VM.loadEDBFacts(RelnOrder, MaxRel+1);
+	CM.buildSorts(Type, MaxType+1);
+	CM.buildFuncDecls(RelnOrder, MaxRel+1);
+	CM.loadEDBFacts(RelnOrder, MaxRel+1);
 
 	M.relm.loadRelations(RelnOrder, MaxRel+1);
 	M.relm.showRelations();
@@ -383,6 +385,9 @@ int main(int Argc, char *Argv[])
 	//M.work2();
 	DP.exploreCandidateRules();
 
+	QE.cm_ptr.reset(&CM);
+	QE.dp_ptr.reset(&DP);
+	QE.execute_one_query();
 
 	if(testSpeedy) {
 		return 0;

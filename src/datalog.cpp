@@ -283,7 +283,7 @@ void DPManager::initGS() {
 	//init_helper(false);
 	//std::cout << "Ss.size = " << Ss.size() << std::endl;
 
-	execute( *Gs.begin() );
+	//execute( *Gs.begin() );
 }
 
 std::vector<ConcreteRule> DPManager::getConcreteRules(const DatalogProgram& dp) {

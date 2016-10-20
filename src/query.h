@@ -3,6 +3,8 @@
 
 
 #include "template.h"
+#include "datalog.h"
+#include "context.h"
 
 #include <vector>
 #include <set>
@@ -11,6 +13,21 @@
 
 
 namespace SpeedyFOIL {
+
+
+struct QueryEngine {
+
+	std::unique_ptr<DPManager> dp_ptr;
+	std::unique_ptr<ContextManager> cm_ptr;
+
+
+	z3::expr helper(z3::context& context,
+			std::map<int, z3::expr>& z3_vars,
+			std::pair<Relation, std::vector<int>>& pair);
+
+	void execute_one_query();
+
+};
 
 
 } // end of namepsace SpeedyFOIL

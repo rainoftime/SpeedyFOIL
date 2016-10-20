@@ -6,7 +6,7 @@ OUT_DIR = _build/
 CFLAGS = -g -std=c++11 -I /usr/local/include/ -L /usr/local/lib/
 
 SRC_Names = global main input output state literal evaluatelit search determinate order \
- 	join utility finddef interpret prune constants template matching datalog context
+ 	join utility finddef interpret prune constants template matching datalog context query
 
 SRC = $(addprefix $(SRC_DIR), $(addsuffix .cpp, $(SRC_Names)))
 OBJ = $(addprefix $(OUT_DIR), $(notdir $(SRC:.cpp=.o)))
