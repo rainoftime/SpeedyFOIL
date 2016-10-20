@@ -2,6 +2,7 @@
 #include "context.h"
 #include "extern.h"
 
+#include <sstream>
 #include <algorithm>
 #include <map>
 
@@ -17,6 +18,14 @@ int estimateBits(int sz) {
 	}
 
 	return K;
+}
+
+
+std::string translate(unsigned int x) {
+	std::stringstream ss;
+	ss << ConstName[x];
+
+	return ss.str();
 }
 
 } // end of anonymous namespace
@@ -89,7 +98,7 @@ void ContextManager::loadEDBFacts(Relation* RArr, int N) {
 
 				std::vector<unsigned int> v;
 				for(int j=1; j <= rel->Arity; ++j){
-					v.push_back( (unsigned int) *tp[j]);
+					v.push_back( (unsigned int) (*tp)[j] );
 				}
 
 				st.insert(std::move(v));
