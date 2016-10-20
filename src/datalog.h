@@ -77,6 +77,15 @@ struct DatalogProgram {
 
 };
 
+
+struct IDBValue {
+	TRelation rel;
+	std::set< std::vector<int> > pos;
+
+	std::set< std::vector<int> > asked_pos;
+	std::set< std::vector<int> > asked_neg;
+};
+
 struct DPManager {
 	const Matching& M;
 	std::vector<IDBTR> idbRules;

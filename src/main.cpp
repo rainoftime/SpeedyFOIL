@@ -2,7 +2,7 @@
 #include  "extern.h"
 #include  "template.h"
 #include  "datalog.h"
-#include  "value.h"
+#include  "context.h"
 
 
 #include <iostream>
@@ -104,7 +104,7 @@ int main(int Argc, char *Argv[])
 	Tuple Case;
 	char Line[200], PlusOrMinus;
 
-	SpeedyFOIL::ValueManager VM;
+	SpeedyFOIL::ContextManager VM;
 	SpeedyFOIL::Matching M;
 	SpeedyFOIL::DPManager DP(M);
 	std::string s;

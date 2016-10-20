@@ -1,5 +1,5 @@
 
-#include "value.h"
+#include "context.h"
 
 #include <algorithm>
 #include <map>
@@ -7,7 +7,7 @@
 namespace SpeedyFOIL {
 
 
-void ValueManager::buildSorts(TypeInfo* TArr, int N) {
+void ContextManager::buildSorts(TypeInfo* TArr, int N) {
 	const int START = 1; // to confirm
 	const int END = N; // to confirm
 
@@ -28,7 +28,7 @@ void ValueManager::buildSorts(TypeInfo* TArr, int N) {
 	}
 }
 
-void ValueManager::buildFuncDecls(Relation* RArr, int N) {
+void ContextManager::buildFuncDecls(Relation* RArr, int N) {
 	const int START = 1; // to confirm
 	const int END = N; // to confirm
 
@@ -39,8 +39,7 @@ void ValueManager::buildFuncDecls(Relation* RArr, int N) {
 			continue;
 		}
 
-
-		std::cout << "process " << rel->Name << std::endl;
+		//std::cout << "process " << rel->Name << std::endl;
 
 		z3::sort_vector sv(C);
 

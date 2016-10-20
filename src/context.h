@@ -1,5 +1,5 @@
-#ifndef VALUE_H
-#define VALUE_H
+#ifndef CONTEXT_H
+#define CONTEXT_H
 
 
 #include "template.h"
@@ -12,17 +12,7 @@
 
 namespace SpeedyFOIL {
 
-struct TupleValue {
-	TRelation rel;
-	std::vector< std::vector<int> > pos;
-
-	// not required for EDB tuple
-	std::vector< std::vector<int> > neg;
-
-};
-
-
-struct ValueManager{
+struct ContextManager{
 	z3::context C;
 
 	std::map<TypeInfo, z3::sort> sortMap;

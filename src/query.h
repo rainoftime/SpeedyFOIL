@@ -12,15 +12,6 @@
 
 namespace SpeedyFOIL {
 
-struct TupleValue {
-	TRelation rel;
-	std::vector< std::vector<int> > pos;
-
-	// not required for EDB tuple
-	std::vector< std::vector<int> > neg;
-
-};
-
 
 } // end of namepsace SpeedyFOIL
 
