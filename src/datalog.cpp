@@ -326,8 +326,8 @@ void DPManager::exploreCandidateRules() {
 	initGS();
 }
 
-std::set<DatalogProgram> DPManager::refineProg(const DatalogProgram& prog, bool specialize) const {
-	std::set<DatalogProgram> res;
+std::vector<DatalogProgram> DPManager::refineProg(const DatalogProgram& prog, bool specialize) {
+	std::vector<DatalogProgram> res;
 
 	for(auto pr : prog.state) {
 		int idb_index = pr.first;
@@ -352,8 +352,14 @@ std::set<DatalogProgram> DPManager::refineProg(const DatalogProgram& prog, bool 
 				DatalogProgram dp(this);
 				dp.state = std::move(cp_state);
 
+				if(! hash_and_record(dp) ){
+					// already existed, skip
+					continue;
+				}
+
 				// NOTE: this insertion happens in three layer nested loops, could explode!!
-				res.insert( std::move(dp) );
+				//res.insert( std::move(dp) );
+				res.push_back( std::move(dp) );
 			}
 		}
 	}
@@ -389,11 +395,19 @@ void DPManager::init_helper(bool general) {
 		}
 
 		dp.state = std::move(state);
+
+		if(! hash_and_record(dp) ){
+			// already existed, skip
+			continue;
+		}
+
 		if(general) {
-			Gs.insert(std::move(dp));
+			//Gs.insert(std::move(dp));
+			Gs.push_back( std::move(dp) );
 		}
 		else{
-			Ss.insert(std::move(dp));
+			//Ss.insert(std::move(dp));
+			Ss.push_back( std::move(dp) );
 		}
 	}
 
@@ -563,6 +577,29 @@ int DPManager::findIDBIndex(Relation r) const {
 	}
 
 	return -1;
+}
+
+bool DPManager::hash_and_record(const DatalogProgram& x){
+	std::string s = str(x);
+	long long h = str_hash( s );
+	auto it = visited.find(h);
+	if(it == visited.end()) {
+		//visited.insert( std::make_pair(h, s) );
+		visited[h].insert(s);
+	}
+	else{
+		// find the key, now check if there is a collision
+		auto it2 = it->second.find(s);
+		if(it2 == it->second.end()) {
+			it->second.insert(s);
+		}
+		else{
+			// already existsed
+			return false;
+		}
+	}
+
+	return true;
 }
 
 bool IDBValue::ask_and_update(std::vector<int>& v) {

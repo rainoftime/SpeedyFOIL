@@ -5,6 +5,8 @@
 #include "matching.h"
 
 #include <vector>
+#include <functional>
+#include <string>
 
 namespace SpeedyFOIL {
 
@@ -108,8 +110,14 @@ struct DPManager {
 	std::vector<IDBTR> idbRules;
 	std::vector<IDBValue> idbValues;
 
-	std::set<DatalogProgram> Gs;
-	std::set<DatalogProgram> Ss;
+	std::vector<DatalogProgram> Gs;
+	std::vector<DatalogProgram> Ss;
+
+	std::hash<std::string> str_hash;
+	std::map<long long, std::set<std::string>> visited;
+
+	//std::set<DatalogProgram> Gs;
+	//std::set<DatalogProgram> Ss;
 
 
 	std::vector<ConcreteRule> getConcreteRules(const DatalogProgram&);
@@ -125,9 +133,11 @@ struct DPManager {
 	void exploreCandidateRules();
 	void fillIDBValues(); // shoudl be called after exploreCandidateRules
 
-	std::set<DatalogProgram> refineProg(const DatalogProgram& prog, bool specialize) const;
+	std::vector<DatalogProgram> refineProg(const DatalogProgram& prog, bool specialize);
 
 	int findIDBIndex(Relation r) const;
+
+	bool hash_and_record(const DatalogProgram&);
 
 	bool ask(std::vector<int>&);
 };
