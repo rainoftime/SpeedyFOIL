@@ -517,6 +517,18 @@ void TemplateManager::logPO2dot(std::string fpath) {
 	fout.close();
 }
 
+int TemplateManager::indexOf(const TClause& tc) const {
+	const int n = templates.size();
+	for(int i=0; i < n; ++i) {
+		const TClause& t = templates[i];
+		if(tc == t) {
+			return i;
+		}
+	}
+
+	return -1;
+}
+
 std::vector<std::string> TRelation::getStrs() const {
 	std::vector<std::string> res;
 	res.push_back( getRelName() );

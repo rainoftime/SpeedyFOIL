@@ -113,6 +113,52 @@ void IDBTR::init(){
 
 std::set<int> IDBTR::generalize(int rule_index) const{
 	std::set<int> res;
+	const IClause& cl = rules[rule_index];
+	const TClause& tc = cl.tc;
+	const int ti = tm.indexOf(tc);
+
+	if(ti < 0) {
+		std::cerr << "ERRPR: IDBTR::generalize cannot find template " << tc.toStr() << std::endl;
+		return res;
+	}
+
+	auto it_tmpls = tm.specific_po.find(ti);
+	if (it_tmpls == tm.specific_po.end() || it_tmpls->second.empty()) {
+		return res;
+	}
+
+	const std::set<int>& tmpls = it_tmpls->second;
+	for(int t : tmpls) {
+		auto it_proof = tm.general_proof.find(t);
+		if(it_proof == tm.general_proof.end()) {
+			std::cerr << "ERROR: IDBTR::generalize specific_po exists, but no proof" << std::endl;
+			return res;
+		}
+
+		const std::map<int, std::pair<PII, PII>> & proof = it_proof->second;
+		auto it = proof.find(ti);
+		if (it == proof.end()) {
+			std::cerr << "ERROR: IDBTR::generalize cannot find a proof between "
+					<< tm.templates[t].toStr()  << "  and  " << tc.toStr()
+					<< std::endl;
+		}
+		const std::pair<PII, PII> & pf = it->second;
+		const std::map<int, int>& relMap = pf.first;
+		const std::map<int, int>& varMap = pf.second;
+
+		auto it2 = tmpl2rules.find(t);
+		if (it2 == tmpl2rules.end()) {
+			continue;
+		}
+		for (int r : it2->second) {
+			// Later if the refinement becomes unsound
+			// try to replace check_proof with explicit theta-subsumption check
+			if (check_proof(rules[r], cl, relMap, varMap)) {
+				res.insert(r);
+			}
+		}
+	}
+
 	return res;
 }
 
@@ -123,12 +169,28 @@ std::set<int> IDBTR::specialize(int rule_index) const{
 	const TClause& tc = cl.tc;
 	const int ti = tm.indexOf(tc);
 
-	const std::set<int>& tmpls = tm.general_po[ti];
+	if(ti < 0) {
+		std::cerr << "ERRPR: IDBTR::specialize cannot find template " << tc.toStr() << std::endl;
+		return res;
+	}
+
+	auto it_tmpls = tm.general_po.find(ti);
+	if(it_tmpls == tm.general_po.end() || it_tmpls->second.empty()){
+		return res;
+	}
+
+	const std::set<int>& tmpls = it_tmpls->second;
 
 	// Note that there could be multiple proofs between two templates
 	// Instead of directly using one proof to check general relation between
 	// two IClauses, we would better redo theta-sumption bewteen them.
-	const std::map<int, std::pair<PII,PII>& proof =tm.general_proof[ti];
+	auto it_proof = tm.general_proof.find(ti);
+	if(it_proof == tm.general_proof.end()) {
+		std::cerr << "ERROR: IDBTR::specialize templates are not empty, but no proof" << std::endl;
+		return res;
+	}
+
+	const std::map<int, std::pair<PII,PII>> & proof = it_proof->second;
 
 	for(int t : tmpls) {
 		auto it = proof.find(t);
@@ -341,8 +403,8 @@ void DPManager::initGS() {
 	init_helper(true);
 	std::cout << "Gs.size = " << Gs.size() << std::endl;
 
-	//init_helper(false);
-	//std::cout << "Ss.size = " << Ss.size() << std::endl;
+	init_helper(false);
+	std::cout << "Ss.size = " << Ss.size() << std::endl;
 
 	//execute( *Gs.begin() );
 }

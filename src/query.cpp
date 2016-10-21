@@ -333,6 +333,7 @@ void QueryEngine::work() {
 			and_pos_vec.push_back(q);
 			z3::expr qs = z3::mk_and(and_pos_vec);
 
+			/*
 			// any general program that cannot cover Q should be eliminated.
 			std::set<int> ids_to_remove;
 			for(const DatalogProgram& x : dp_ptr->Gs) {
@@ -355,9 +356,27 @@ void QueryEngine::work() {
 					<< ids_to_remove.size() << " out of " << dp_ptr->Gs.size()
 					<< std::endl;
 
+			 */
 
+			// refine specific program that cover negative tuple
 
-			// refine specific program
+			for(const DatalogProgram& x : dp_ptr->Gs) {
+					std::set<DatalogProgram> st = dp_ptr->refineProg(x, true);
+
+					if (st.size() > 0) {
+						std::cout << "specialize program " << std::endl;
+						std::cout << dp_ptr->str(x) << std::endl;
+
+						std::cout << "specialize results:\n";
+
+						for(const DatalogProgram& y : st) {
+							std::cout << dp_ptr->str(y) << std::endl;
+						}
+
+						break;
+					}
+
+			}
 
 
 		} else {
