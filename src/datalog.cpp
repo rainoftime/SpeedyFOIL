@@ -415,5 +415,16 @@ std::vector< std::vector<int> > DPManager::execute(const DatalogProgram& dp) {
 	return res2;
 }
 
+int DPManager::findIDBIndex(Relation r) const {
+	const int n = idbRules.size();
+	for(int i=0; i < n; ++i) {
+		const IDBTR& idb = idbRules[i];
+		if(r == idb.rel.pRel) {
+			return i;
+		}
+	}
+
+	return -1;
+}
 
 } // end of namespace SpeedyFOIL

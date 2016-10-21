@@ -111,7 +111,6 @@ struct DPManager {
 	std::set<DatalogProgram> Ss;
 
 
-	std::map< std::vector<int>, std::pair<int,int> > vote_stats;
 
 
 	std::vector<ConcreteRule> getConcreteRules(const DatalogProgram&);
@@ -128,6 +127,7 @@ struct DPManager {
 
 	std::set<DatalogProgram> refineProg(const DatalogProgram& prog, bool specialize) const;
 
+	int findIDBIndex(Relation r) const;
 
 };
 
