@@ -74,6 +74,7 @@ struct QueryEngine {
 	ContextManager* cm_ptr;
 
 
+
 	std::map< std::vector<int>, int > vote_stats;
 
 	z3::expr build_func_constr(z3::context& context,
@@ -87,7 +88,9 @@ struct QueryEngine {
 	void queryIDBs(std::set<std::pair<Relation, std::vector<int>>>& queries, FixedPoint& fp);
 	void parse_and_update(z3::expr&, int);
 
-	bool test(const DatalogProgram&, std::vector<int>&);
+	bool test(const DatalogProgram&, z3::expr);
+
+	z3::expr convert_question(std::vector<int>&);
 
 	void work();
 

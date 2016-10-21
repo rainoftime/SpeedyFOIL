@@ -217,10 +217,7 @@ void QueryEngine::execute(const DatalogProgram& dp) {
 	queryIDBs(queries, fp);
 }
 
-bool QueryEngine::test(const DatalogProgram& dp, std::vector<int>& Q) {
-	std::set<std::pair<Relation, std::vector<int>>> queries;
-	FixedPoint fp = prepare(dp, queries);
-
+z3::expr QueryEngine::convert_question(std::vector<int>& Q){
 	const int idb_index = Q[0];
 	Relation rel = dp_ptr->idbRules[idb_index].rel.pRel;
 	auto it = cm_ptr->funcMap.find(rel);
@@ -239,7 +236,13 @@ bool QueryEngine::test(const DatalogProgram& dp, std::vector<int>& Q) {
 		params.push_back(val);
 	}
 
-	return fp.query( f(params) );
+	return f(params);
+}
+
+bool QueryEngine::test(const DatalogProgram& dp, z3::expr Q) {
+	std::set<std::pair<Relation, std::vector<int>>> queries;
+	FixedPoint fp = prepare(dp, queries);
+	return fp.query( Q );
 }
 
 std::vector<int> QueryEngine::execute_one_round() {
@@ -308,6 +311,10 @@ std::vector<int> QueryEngine::execute_one_round() {
 
 void QueryEngine::work() {
 
+	z3::expr_vector and_pos_vec(cm_ptr->C);
+	z3::expr_vector or_neg_vec (cm_ptr->C);
+
+
 	int round = 0;
 	while (true) {
 		++round;
@@ -321,10 +328,15 @@ void QueryEngine::work() {
 		bool positive = dp_ptr->ask(Q);
 
 		if (positive) {
+
+			z3::expr q = convert_question(Q);
+			and_pos_vec.push_back(q);
+			z3::expr qs = z3::mk_and(and_pos_vec);
+
 			// any general program that cannot cover Q should be eliminated.
 			std::set<int> ids_to_remove;
 			for(const DatalogProgram& x : dp_ptr->Gs) {
-				if(test(x, Q) == false){
+				if(test(x, qs) == false){
 					ids_to_remove.insert( x.prog_id );
 
 					if (ids_to_remove.size() % 1000 == 0) {
@@ -339,13 +351,26 @@ void QueryEngine::work() {
 				}
 			}
 
+			std::cout << "Number of programs to eliminate: "
+					<< ids_to_remove.size() << " out of " << dp_ptr->Gs.size()
+					<< std::endl;
+
+
 
 			// refine specific program
+
+
 		} else {
+			z3::expr q = convert_question(Q);
+			or_neg_vec.push_back(q);
+			z3::expr qs = z3::mk_or(or_neg_vec);
+
+			// eliminate specific program covering Q
+
+
 			// any general program that can cover Q needs refinement
 
 
-			// eliminate specific program covering Q
 		}
 
 		break;
