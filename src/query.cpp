@@ -28,6 +28,32 @@ const char* str(int x) {
 
 } // end of anonymous namespace
 
+
+FixedPoint::FixedPoint(ContextManager* pCM) : pContext(&(pCM->C)), defaultS(pContext->str_symbol("defaultS")) {
+	z3_fp = Z3_mk_fixedpoint( *pContext );
+	Z3_fixedpoint_inc_ref(*pContext,z3_fp);
+
+	// register relation definitions
+	for (auto pr : pCM->funcMap) {
+		Z3_fixedpoint_register_relation(*pContext, z3_fp, pr.second);
+	}
+
+	pCM->appendEDBConstr(z3_fp);
+}
+
+void FixedPoint::add_rules(std::vector<z3::expr>& rules) {
+	for (z3::expr& r : rules) {
+		Z3_fixedpoint_add_rule(*pContext, z3_fp, r, defaultS);
+	}
+}
+
+void FixedPoint::add_rule(z3::expr rule) {
+	Z3_fixedpoint_add_rule(*pContext, z3_fp, rule, defaultS);
+}
+
+
+
+
 z3::expr QueryEngine::build_func_constr(z3::context& context,
 		std::map<int, z3::expr>& z3_vars,
 		std::pair<Relation, std::vector<int>>& pair) {
@@ -197,6 +223,7 @@ Z3_fixedpoint QueryEngine::prepare(const DatalogProgram & dp,
 void QueryEngine::execute(const DatalogProgram& dp) {
 	std::set<std::pair<Relation, std::vector<int>>> queries;
 
+
 	Z3_fixedpoint fp = prepare(dp, queries);
 
 	// query
@@ -223,6 +250,7 @@ void QueryEngine::execute_one_round() {
 		if(i%500 == 0) {
 			std::cout << "i = " << i << ", warn_ct = " << warn_ct << std::endl;
 		}
+		break;
 	}
 
 	std::cout << "warn_ct = " << warn_ct << std::endl;

@@ -387,8 +387,10 @@ int main(int Argc, char *Argv[])
 	//M.work2();
 	DP.exploreCandidateRules();
 
-	QE.cm_ptr.reset(&CM);
-	QE.dp_ptr.reset(&DP);
+	QE.cm_ptr = &CM;
+	QE.dp_ptr = &DP;
+	//QE.cm_ptr.reset(&CM);
+	//QE.dp_ptr.reset(&DP);
 	QE.execute_one_round();
 
 	if(testSpeedy) {

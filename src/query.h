@@ -14,15 +14,56 @@
 
 namespace SpeedyFOIL {
 
+struct FixedPoint{
+	Z3_fixedpoint z3_fp;
+	z3::context * pContext;
+	z3::symbol defaultS;
+
+	FixedPoint(ContextManager* pCM);
+
+	FixedPoint(const FixedPoint&) = delete;
+
+	FixedPoint(FixedPoint&& fp) noexcept : defaultS(fp.defaultS) {
+		pContext = fp.pContext;
+		z3_fp = fp.z3_fp;
+
+		fp.pContext = nullptr;
+	}
+
+	FixedPoint& operator = (FixedPoint&& fp) noexcept {
+		defaultS = fp.defaultS;
+		pContext = fp.pContext;
+		z3_fp = fp.z3_fp;
+
+		fp.pContext = nullptr;
+		return *this;
+	}
+
+	void add_rules(std::vector<z3::expr>& rules);
+
+	void add_rule(z3::expr rule);
+
+	void register_relation(Z3_func_decl f) {
+		Z3_fixedpoint_register_relation( *pContext, z3_fp, f);
+	}
+
+	~FixedPoint() {
+		if(pContext == nullptr) {
+			// values have been moved, do nothing
+		}
+		else {
+			Z3_fixedpoint_dec_ref(*pContext,z3_fp);
+		}
+	}
+
+};
 
 struct QueryEngine {
 
 	int warn_ct = 0;
-	//std::shared_ptr<DPManager> dp_ptr;
-	//std::shared_ptr<ContextManager> cm_ptr;
 
-	std::unique_ptr<DPManager> dp_ptr;
-	std::unique_ptr<ContextManager> cm_ptr;
+	DPManager* dp_ptr;
+	ContextManager* cm_ptr;
 
 
 	std::map< std::vector<int>, int > vote_stats;
@@ -39,11 +80,6 @@ struct QueryEngine {
 	void parse_and_update(z3::expr&, int);
 
 	void work();
-
-	~QueryEngine(){
-		dp_ptr.release();
-		cm_ptr.release();
-	}
 
 };
 
