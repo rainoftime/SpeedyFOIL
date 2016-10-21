@@ -121,18 +121,20 @@ void QueryEngine::queryIDBs(
 			parse_and_update(detailed_res, idb_index);
 		}
 		else{
-			std::cout << "WARN, fp result: " << res << std::endl;
+			//std::cout << "WARN, fp result: " << res << std::endl;
+			++warn_ct;
 		}
 	}
 
 }
 
-void QueryEngine::execute(const DatalogProgram& dp) {
+
+Z3_fixedpoint QueryEngine::prepare(const DatalogProgram & dp,
+		std::set<std::pair<Relation, std::vector<int>>>& queries) {
 	z3::context& context = cm_ptr->C;
 	z3::sort bv_sort = context.bv_sort(cm_ptr->MaxBits);
 
 	std::vector<z3::expr> z3_rs;
-	std::set<std::pair<Relation, std::vector<int>>> queries;
 
 	std::vector<ConcreteRule> rs = dp_ptr->getConcreteRules( dp );
 
@@ -189,35 +191,47 @@ void QueryEngine::execute(const DatalogProgram& dp) {
 	// add EDB facts
 	cm_ptr->appendEDBConstr(fp);
 
+	return fp;
+}
+
+void QueryEngine::execute(const DatalogProgram& dp) {
+	std::set<std::pair<Relation, std::vector<int>>> queries;
+
+	Z3_fixedpoint fp = prepare(dp, queries);
+
 	// query
 	queryIDBs(queries, fp);
 
 	// release fp object
-	Z3_fixedpoint_dec_ref(context,fp);
+	Z3_fixedpoint_dec_ref(cm_ptr->C,fp);
 
 }
 
 
-void QueryEngine::execute_one_query() {
+void QueryEngine::execute_one_round() {
 
 	vote_stats.clear();
+	warn_ct = 0;
 
-	const int N = 10;
-	const int n = dp_ptr->Gs.size();
+	int i = 0;
 	auto it = dp_ptr->Gs.begin();
-	for(int i=0; i < N && i < n; ++i ) {
+	while(it != dp_ptr->Gs.end()) {
 		execute(*it);
-
-
-		std::cout << "\ntuple stats: \n";
-		for(auto pr : vote_stats) {
-			std::cout<< pr.second << " votes for " ;
-			for(int x : pr.first) std::cout << x <<" ";
-			std::cout << std::endl;
-		}
-
-
 		++it;
+		++i;
+
+		if(i%500 == 0) {
+			std::cout << "i = " << i << ", warn_ct = " << warn_ct << std::endl;
+		}
+	}
+
+	std::cout << "warn_ct = " << warn_ct << std::endl;
+	std::cout << "\ntuple stats: \n";
+	for (auto pr : vote_stats) {
+		std::cout << pr.second << " votes for ";
+		for (int x : pr.first)
+			std::cout << x << " ";
+		std::cout << std::endl;
 	}
 
 }

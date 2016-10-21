@@ -17,6 +17,7 @@ namespace SpeedyFOIL {
 
 struct QueryEngine {
 
+	int warn_ct = 0;
 	//std::shared_ptr<DPManager> dp_ptr;
 	//std::shared_ptr<ContextManager> cm_ptr;
 
@@ -30,8 +31,9 @@ struct QueryEngine {
 			std::map<int, z3::expr>& z3_vars,
 			std::pair<Relation, std::vector<int>>& pair);
 
-	void execute_one_query();
+	void execute_one_round();
 
+	Z3_fixedpoint prepare(const DatalogProgram & dp, std::set<std::pair<Relation, std::vector<int>>>& queries);
 	void execute(const DatalogProgram & dp);
 	void queryIDBs(std::set<std::pair<Relation, std::vector<int>>>& queries, Z3_fixedpoint& fp);
 	void parse_and_update(z3::expr&, int);

@@ -389,7 +389,7 @@ int main(int Argc, char *Argv[])
 
 	QE.cm_ptr.reset(&CM);
 	QE.dp_ptr.reset(&DP);
-	QE.execute_one_query();
+	QE.execute_one_round();
 
 	if(testSpeedy) {
 		return 0;
