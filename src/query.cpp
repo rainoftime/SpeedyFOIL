@@ -140,11 +140,6 @@ void QueryEngine::queryIDBs(
 			ex_vs.push_back(vx);
 		}
 
-		//std::cout << "z3_vars:\n";
-		//for(auto pr : z3_vars) {
-		//	std::cout << "key=" << pr.first << ", value=" << pr.second << std::endl;
-		//}
-
 		z3::expr_vector params(context);
 		for (int x : Q.second) {
 			auto it = z3_vars.find(x);
@@ -160,24 +155,6 @@ void QueryEngine::queryIDBs(
 		else {
 			++warn_ct;
 		}
-
-		//Z3_lbool res = Z3_fixedpoint_query(context, fp,
-		//		z3::exists(ex_vs, f(params)));
-
-		/*
-		if(res == Z3_L_TRUE){
-			Z3_ast ast_res = Z3_fixedpoint_get_answer(context, fp);
-			z3::expr detailed_res(context, ast_res);
-
-			//std::cout << detailed_res << std::endl;
-
-			int idb_index = dp_ptr->findIDBIndex(rel);
-			parse_and_update(detailed_res, idb_index);
-		}
-		else{
-			//std::cout << "WARN, fp result: " << res << std::endl;
-			++warn_ct;
-		}*/
 	}
 
 }
@@ -227,26 +204,6 @@ FixedPoint QueryEngine::prepare(const DatalogProgram & dp,
 		z3_rs.push_back(rule);
 	}
 
-	/*
-	// create fp object
-	Z3_fixedpoint fp = Z3_mk_fixedpoint(context);
-	Z3_fixedpoint_inc_ref(context,fp);
-
-	// register relation definitions
-	for (auto pr : cm_ptr->funcMap) {
-		Z3_fixedpoint_register_relation(context, fp, pr.second);
-	}
-
-	// add rules
-	z3::symbol s_r1 = cm_ptr->C.str_symbol("r1");
-	for (z3::expr& r : z3_rs) {
-		Z3_fixedpoint_add_rule(context, fp, r, s_r1);
-	}
-
-	// add EDB facts
-	cm_ptr->appendEDBConstr(fp);
-	*/
-
 	FixedPoint fp(cm_ptr);
 	fp.add_rules(z3_rs);
 
@@ -255,18 +212,8 @@ FixedPoint QueryEngine::prepare(const DatalogProgram & dp,
 
 void QueryEngine::execute(const DatalogProgram& dp) {
 	std::set<std::pair<Relation, std::vector<int>>> queries;
-
-
-	//Z3_fixedpoint fp = prepare(dp, queries);
-
 	FixedPoint fp = prepare(dp, queries);
-
-	// query
 	queryIDBs(queries, fp);
-
-	// release fp object
-	//Z3_fixedpoint_dec_ref(cm_ptr->C,fp);
-
 }
 
 
@@ -285,7 +232,7 @@ void QueryEngine::execute_one_round() {
 		if(i%500 == 0) {
 			std::cout << "i = " << i << ", warn_ct = " << warn_ct << std::endl;
 		}
-		break;
+		//break;
 	}
 
 	std::cout << "warn_ct = " << warn_ct << std::endl;
