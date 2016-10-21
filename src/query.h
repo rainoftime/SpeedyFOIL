@@ -14,26 +14,30 @@
 
 namespace SpeedyFOIL {
 
+
 struct FixedPoint{
 	Z3_fixedpoint z3_fp;
 	z3::context * pContext;
 	z3::symbol defaultS;
+	Z3_lbool recent;
 
 	FixedPoint(ContextManager* pCM);
 
 	FixedPoint(const FixedPoint&) = delete;
 
-	FixedPoint(FixedPoint&& fp) noexcept : defaultS(fp.defaultS) {
-		pContext = fp.pContext;
-		z3_fp = fp.z3_fp;
-
+	FixedPoint(FixedPoint&& fp) noexcept : pContext(fp.pContext), z3_fp(fp.z3_fp), recent(fp.recent), defaultS(fp.defaultS) {
 		fp.pContext = nullptr;
 	}
+
+	FixedPoint& operator = (FixedPoint& fp) = delete;
+	FixedPoint& operator = (const FixedPoint& fp) = delete;
+
 
 	FixedPoint& operator = (FixedPoint&& fp) noexcept {
 		defaultS = fp.defaultS;
 		pContext = fp.pContext;
 		z3_fp = fp.z3_fp;
+		recent = fp.recent;
 
 		fp.pContext = nullptr;
 		return *this;
@@ -43,6 +47,9 @@ struct FixedPoint{
 
 	void add_rule(z3::expr rule);
 
+	bool query(Z3_ast);
+	z3::expr get_answer();
+
 	void register_relation(Z3_func_decl f) {
 		Z3_fixedpoint_register_relation( *pContext, z3_fp, f);
 	}
@@ -50,6 +57,7 @@ struct FixedPoint{
 	~FixedPoint() {
 		if(pContext == nullptr) {
 			// values have been moved, do nothing
+			std::cerr << "values have been moved, do nothing" << std::endl;
 		}
 		else {
 			Z3_fixedpoint_dec_ref(*pContext,z3_fp);
@@ -74,9 +82,9 @@ struct QueryEngine {
 
 	void execute_one_round();
 
-	Z3_fixedpoint prepare(const DatalogProgram & dp, std::set<std::pair<Relation, std::vector<int>>>& queries);
+	FixedPoint prepare(const DatalogProgram & dp, std::set<std::pair<Relation, std::vector<int>>>& queries);
 	void execute(const DatalogProgram & dp);
-	void queryIDBs(std::set<std::pair<Relation, std::vector<int>>>& queries, Z3_fixedpoint& fp);
+	void queryIDBs(std::set<std::pair<Relation, std::vector<int>>>& queries, FixedPoint& fp);
 	void parse_and_update(z3::expr&, int);
 
 	void work();

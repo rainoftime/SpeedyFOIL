@@ -33,6 +33,7 @@ FixedPoint::FixedPoint(ContextManager* pCM) : pContext(&(pCM->C)), defaultS(pCon
 	z3_fp = Z3_mk_fixedpoint( *pContext );
 	Z3_fixedpoint_inc_ref(*pContext,z3_fp);
 
+	recent = Z3_L_UNDEF;
 	// register relation definitions
 	for (auto pr : pCM->funcMap) {
 		Z3_fixedpoint_register_relation(*pContext, z3_fp, pr.second);
@@ -51,8 +52,24 @@ void FixedPoint::add_rule(z3::expr rule) {
 	Z3_fixedpoint_add_rule(*pContext, z3_fp, rule, defaultS);
 }
 
+bool FixedPoint::query(Z3_ast Q) {
+	recent = Z3_fixedpoint_query( *pContext, z3_fp, Q);
+	if(recent == Z3_L_UNDEF) {
+		std::cerr << "query result is UNDEF" << std::endl;
+	}
+	return recent == Z3_L_TRUE;
+}
 
+z3::expr FixedPoint::get_answer(){
+	if(recent != Z3_L_TRUE) {
+		std::cerr << "ERROR: cannot get_answer unless recent status is true" << std::endl;
+	}
 
+	Z3_ast ast_res = Z3_fixedpoint_get_answer( *pContext, z3_fp);
+	z3::expr detailed_res( *pContext, ast_res);
+
+	return detailed_res;
+}
 
 z3::expr QueryEngine::build_func_constr(z3::context& context,
 		std::map<int, z3::expr>& z3_vars,
@@ -104,7 +121,7 @@ void QueryEngine::parse_and_update(z3::expr& E, int idx) {
 }
 
 void QueryEngine::queryIDBs(
-		std::set<std::pair<Relation, std::vector<int>>>& queries, Z3_fixedpoint& fp) {
+		std::set<std::pair<Relation, std::vector<int>>>& queries, FixedPoint& fp) {
 	z3::context& context = cm_ptr->C;
 	z3::sort bv_sort = context.bv_sort(cm_ptr->MaxBits);
 
@@ -134,9 +151,20 @@ void QueryEngine::queryIDBs(
 			params.push_back( it->second );
 		}
 
-		Z3_lbool res = Z3_fixedpoint_query(context, fp,
-				z3::exists(ex_vs, f(params)));
+		if ( fp.query(z3::exists(ex_vs, f(params))) ){
+			z3::expr detailed_res = fp.get_answer();
+			int idb_index = dp_ptr->findIDBIndex(rel);
+			parse_and_update(detailed_res, idb_index);
 
+		}
+		else {
+			++warn_ct;
+		}
+
+		//Z3_lbool res = Z3_fixedpoint_query(context, fp,
+		//		z3::exists(ex_vs, f(params)));
+
+		/*
 		if(res == Z3_L_TRUE){
 			Z3_ast ast_res = Z3_fixedpoint_get_answer(context, fp);
 			z3::expr detailed_res(context, ast_res);
@@ -149,13 +177,13 @@ void QueryEngine::queryIDBs(
 		else{
 			//std::cout << "WARN, fp result: " << res << std::endl;
 			++warn_ct;
-		}
+		}*/
 	}
 
 }
 
 
-Z3_fixedpoint QueryEngine::prepare(const DatalogProgram & dp,
+FixedPoint QueryEngine::prepare(const DatalogProgram & dp,
 		std::set<std::pair<Relation, std::vector<int>>>& queries) {
 	z3::context& context = cm_ptr->C;
 	z3::sort bv_sort = context.bv_sort(cm_ptr->MaxBits);
@@ -199,6 +227,7 @@ Z3_fixedpoint QueryEngine::prepare(const DatalogProgram & dp,
 		z3_rs.push_back(rule);
 	}
 
+	/*
 	// create fp object
 	Z3_fixedpoint fp = Z3_mk_fixedpoint(context);
 	Z3_fixedpoint_inc_ref(context,fp);
@@ -216,6 +245,10 @@ Z3_fixedpoint QueryEngine::prepare(const DatalogProgram & dp,
 
 	// add EDB facts
 	cm_ptr->appendEDBConstr(fp);
+	*/
+
+	FixedPoint fp(cm_ptr);
+	fp.add_rules(z3_rs);
 
 	return fp;
 }
@@ -224,13 +257,15 @@ void QueryEngine::execute(const DatalogProgram& dp) {
 	std::set<std::pair<Relation, std::vector<int>>> queries;
 
 
-	Z3_fixedpoint fp = prepare(dp, queries);
+	//Z3_fixedpoint fp = prepare(dp, queries);
+
+	FixedPoint fp = prepare(dp, queries);
 
 	// query
 	queryIDBs(queries, fp);
 
 	// release fp object
-	Z3_fixedpoint_dec_ref(cm_ptr->C,fp);
+	//Z3_fixedpoint_dec_ref(cm_ptr->C,fp);
 
 }
 
