@@ -1,7 +1,8 @@
 
 #include "datalog.h"
+#include "template.h"
 
-
+#include <map>
 #include <vector>
 #include <iostream>
 #include <algorithm>
@@ -12,7 +13,25 @@ namespace SpeedyFOIL {
 
 int DatalogProgram::programCt = 0;
 
+typedef std::map<int,int> PII;
+
 namespace {
+
+bool check_proof(const IClause& g, const IClause& s, const PII& relMap, const PII& varMap) {
+
+	if(g.cl_hd.pRel != s.cl_hd.pRel) {
+		return false;
+	}
+
+	for(auto pr : relMap) {
+		if( g.cl_body[pr.first].pRel != s.cl_body[pr.second].pRel){
+			return false;
+		}
+	}
+
+	// varMap seems unnecessary, as IClause does not change var orders from TClause
+	return true;
+}
 
 std::vector<std::set<int>> chooseK_helper(int n, int i, const std::vector<int>& v) {
 	std::vector<std::set<int>> res;
@@ -99,6 +118,48 @@ std::set<int> IDBTR::generalize(int rule_index) const{
 
 std::set<int> IDBTR::specialize(int rule_index) const{
 	std::set<int> res;
+
+	const IClause& cl = rules[rule_index];
+	const TClause& tc = cl.tc;
+	const int ti = tm.indexOf(tc);
+
+	const std::set<int>& tmpls = tm.general_po[ti];
+
+	// Note that there could be multiple proofs between two templates
+	// Instead of directly using one proof to check general relation between
+	// two IClauses, we would better redo theta-sumption bewteen them.
+	const std::map<int, std::pair<PII,PII>& proof =tm.general_proof[ti];
+
+	for(int t : tmpls) {
+		auto it = proof.find(t);
+		if(it == proof.end()) {
+			std::cerr << "ERROR: IDBTR::specialize cannot find a proof between "
+					<< tc.toStr() << "  and  " << tm.templates[t].toStr()
+					<< std::endl;
+		}
+		const std::pair<PII,PII> & pf = it->second;
+		const std::map<int,int>& relMap = pf.first;
+		const std::map<int,int>& varMap = pf.second;
+
+
+		auto it2 = tmpl2rules.find(t);
+		if(it2 == tmpl2rules.end()){
+			continue;
+		}
+
+		for(int r : it2->second) {
+			// Later if the refinement becomes unsound
+			// try to replace check_proof with explicit theta-subsumption check
+			if(check_proof(cl, rules[r], relMap, varMap)) {
+
+				std::cout << "IDBTR::specialize, Partial order between two IClauses\n";
+				std::cout << cl.toStr() << std::endl;
+				std::cout << rules[r].toStr() << std::endl;
+				res.insert(r);
+			}
+		}
+	}
+
 	return res;
 }
 
