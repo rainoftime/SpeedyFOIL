@@ -92,6 +92,7 @@ struct QueryEngine {
 
 	z3::expr convert_question(std::vector<int>&);
 
+	void eliminate_and_refine(std::vector<DatalogProgram>& A, std::vector<DatalogProgram>& B, bool);
 	void work();
 
 };
