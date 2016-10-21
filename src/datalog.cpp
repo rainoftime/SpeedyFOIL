@@ -141,7 +141,7 @@ void DPManager::fillIDBValues() {
 
 			std::vector<int> v;
 			for (int j = 1; j <= rel->Arity; ++j) {
-				v.push_back( (int) *tp[j]);
+				v.push_back( (int) (*tp)[j]);
 			}
 
 			st.insert(std::move(v));
@@ -415,6 +415,21 @@ std::vector< std::vector<int> > DPManager::execute(const DatalogProgram& dp) {
 	return res2;
 }
 
+
+std::string DPManager::str(const DatalogProgram& dp) {
+	std::stringstream ss;
+	for(auto pr : dp.state) {
+		int idb_index = pr.first;
+		const IDBTR & idb = idbRules[idb_index];
+
+		for(auto r : pr.second) {
+			ss << idb.rules[r].toStr() << std::endl;
+		}
+	}
+
+	return ss.str();
+}
+
 int DPManager::findIDBIndex(Relation r) const {
 	const int n = idbRules.size();
 	for(int i=0; i < n; ++i) {
@@ -425,6 +440,26 @@ int DPManager::findIDBIndex(Relation r) const {
 	}
 
 	return -1;
+}
+
+bool IDBValue::ask_and_update(std::vector<int>& v) {
+	auto it = pos.find(v);
+
+	if(it == pos.end()) {
+		asked_neg.insert(v);
+		return false;
+	}
+	else{
+		asked_pos.insert(v);
+		return true;
+	}
+}
+
+bool DPManager::ask(std::vector<int>& Q) {
+	const int idb_index = Q[0];
+	std::vector<int> tp(Q.begin()+1, Q.end());
+
+	return idbValues[idb_index].ask_and_update(tp);
 }
 
 } // end of namespace SpeedyFOIL

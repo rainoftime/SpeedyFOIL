@@ -386,12 +386,14 @@ int main(int Argc, char *Argv[])
 	//M.work();
 	//M.work2();
 	DP.exploreCandidateRules();
+	DP.fillIDBValues();
 
 	QE.cm_ptr = &CM;
 	QE.dp_ptr = &DP;
 	//QE.cm_ptr.reset(&CM);
 	//QE.dp_ptr.reset(&DP);
-	QE.execute_one_round();
+	//QE.execute_one_round();
+	QE.work();
 
 	if(testSpeedy) {
 		return 0;

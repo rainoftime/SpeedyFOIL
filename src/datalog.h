@@ -99,6 +99,7 @@ struct IDBValue {
 
 	IDBValue operator=(IDBValue&&) = delete;
 
+	bool ask_and_update(std::vector<int>& v);
 };
 
 
@@ -111,10 +112,9 @@ struct DPManager {
 	std::set<DatalogProgram> Ss;
 
 
-
-
 	std::vector<ConcreteRule> getConcreteRules(const DatalogProgram&);
 	std::vector< std::vector<int> > execute(const DatalogProgram&);
+	std::string str(const DatalogProgram&);
 
 
 	DPManager(const Matching& match) : M(match) {}
@@ -129,6 +129,7 @@ struct DPManager {
 
 	int findIDBIndex(Relation r) const;
 
+	bool ask(std::vector<int>&);
 };
 
 } // namespace SpeedyFOIL

@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <sstream>
+#include <algorithm>
 
 namespace SpeedyFOIL {
 
@@ -216,13 +217,37 @@ void QueryEngine::execute(const DatalogProgram& dp) {
 	queryIDBs(queries, fp);
 }
 
+bool QueryEngine::test(const DatalogProgram& dp, std::vector<int>& Q) {
+	std::set<std::pair<Relation, std::vector<int>>> queries;
+	FixedPoint fp = prepare(dp, queries);
 
-void QueryEngine::execute_one_round() {
+	const int idb_index = Q[0];
+	Relation rel = dp_ptr->idbRules[idb_index].rel.pRel;
+	auto it = cm_ptr->funcMap.find(rel);
+	if (it == cm_ptr->funcMap.end()) {
+		std::cerr << "ERROR, QueryEngine::test got unknown relation : "
+				<< rel->Name << std::endl;
+	}
+	z3::func_decl f = it->second;
+
+
+	z3::context& context = cm_ptr->C;
+	z3::expr_vector params( context);
+	const int sz = Q.size();
+	for(int i=1; i< sz; ++i) {
+		z3::expr val = context.bv_val( Q[i] ,cm_ptr->MaxBits);
+		params.push_back(val);
+	}
+
+	return fp.query( f(params) );
+}
+
+std::vector<int> QueryEngine::execute_one_round() {
 
 	vote_stats.clear();
 	warn_ct = 0;
 
-	int i = 0;
+	int i=0;
 	auto it = dp_ptr->Gs.begin();
 	while(it != dp_ptr->Gs.end()) {
 		execute(*it);
@@ -231,6 +256,7 @@ void QueryEngine::execute_one_round() {
 
 		if(i%500 == 0) {
 			std::cout << "i = " << i << ", warn_ct = " << warn_ct << std::endl;
+			break;
 		}
 		//break;
 	}
@@ -243,6 +269,89 @@ void QueryEngine::execute_one_round() {
 			std::cout << x << " ";
 		std::cout << std::endl;
 	}
+
+	//const int ideal = dp_ptr->Gs.size() / 2;
+	const int ideal = 500/2;
+
+	int best = ideal;
+
+	std::set<int> votes;
+	std::vector<int> question;
+	for (auto pr : vote_stats) {
+		votes.insert(pr.second);
+
+		int dis = pr.second - ideal;
+		if(dis < 0) dis =-dis;
+
+		if(dis < best) {
+			question = pr.first;
+			best = dis;
+		}
+	}
+
+
+	std::cout << "best distance : " << best << std::endl;
+
+	if(votes.size() == 1) {
+		if( *votes.begin() == dp_ptr->Gs.size() ) {
+			// converged !!!
+			return std::vector<int>();
+		}
+	}
+
+	std::copy(question.begin(), question.end(), std::ostream_iterator<int>(std::cout, ", ") );
+	std::cout << std::endl;
+
+	return question;
+
+}
+
+void QueryEngine::work() {
+
+	int round = 0;
+	while (true) {
+		++round;
+
+		std::vector<int> Q = execute_one_round();
+
+		if(Q.size() == 0) {
+			break;
+		}
+
+		bool positive = dp_ptr->ask(Q);
+
+		if (positive) {
+			// any general program that cannot cover Q should be eliminated.
+			std::set<int> ids_to_remove;
+			for(const DatalogProgram& x : dp_ptr->Gs) {
+				if(test(x, Q) == false){
+					ids_to_remove.insert( x.prog_id );
+
+					if (ids_to_remove.size() % 1000 == 0) {
+						std::cout << "remove.size = " << ids_to_remove.size() << std::endl
+								<< "The following program will be eliminated by: ";
+						std::copy(Q.begin(), Q.end(),
+								std::ostream_iterator<int>(std::cout, ", "));
+						std::cout << std::endl;
+
+						std::cout << dp_ptr->str(x) << std::endl;
+					}
+				}
+			}
+
+
+			// refine specific program
+		} else {
+			// any general program that can cover Q needs refinement
+
+
+			// eliminate specific program covering Q
+		}
+
+		break;
+	}
+
+	std::cout << "converged at round: " << round << std::endl;
 
 }
 

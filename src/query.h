@@ -80,12 +80,14 @@ struct QueryEngine {
 			std::map<int, z3::expr>& z3_vars,
 			std::pair<Relation, std::vector<int>>& pair);
 
-	void execute_one_round();
+	std::vector<int> execute_one_round();
 
 	FixedPoint prepare(const DatalogProgram & dp, std::set<std::pair<Relation, std::vector<int>>>& queries);
 	void execute(const DatalogProgram & dp);
 	void queryIDBs(std::set<std::pair<Relation, std::vector<int>>>& queries, FixedPoint& fp);
 	void parse_and_update(z3::expr&, int);
+
+	bool test(const DatalogProgram&, std::vector<int>&);
 
 	void work();
 
