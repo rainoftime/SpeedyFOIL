@@ -411,7 +411,7 @@ void QueryEngine::work() {
 			or_neg_vec.push_back(q);
 			z3::expr qs = z3::mk_or(or_neg_vec);
 
-			eliminate_and_refine( dp_ptr->Gs, dp_ptr->Ss, false, qs);
+			eliminate_and_refine( dp_ptr->Ss, dp_ptr->Gs, false, qs);
 		}
 
 		//break;
