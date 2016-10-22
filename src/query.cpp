@@ -4,6 +4,7 @@
 #include <sstream>
 #include <algorithm>
 #include <queue>
+#include <iterator>
 #include <functional>
 
 namespace SpeedyFOIL {
