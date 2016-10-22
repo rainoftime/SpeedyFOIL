@@ -119,9 +119,9 @@ struct DPManager {
 	//std::set<DatalogProgram> Gs;
 	//std::set<DatalogProgram> Ss;
 
+	//std::vector< std::vector<int> > execute(const DatalogProgram&);
 
 	std::vector<ConcreteRule> getConcreteRules(const DatalogProgram&);
-	std::vector< std::vector<int> > execute(const DatalogProgram&);
 	std::string str(const DatalogProgram&);
 
 
@@ -140,6 +140,8 @@ struct DPManager {
 	bool hash_and_record(const DatalogProgram&);
 
 	bool ask(std::vector<int>&);
+
+	void test_specialize();
 };
 
 } // namespace SpeedyFOIL

@@ -388,6 +388,8 @@ int main(int Argc, char *Argv[])
 	DP.exploreCandidateRules();
 	DP.fillIDBValues();
 
+	//DP.test_specialize();
+
 	QE.cm_ptr = &CM;
 	QE.dp_ptr = &DP;
 	//QE.cm_ptr.reset(&CM);

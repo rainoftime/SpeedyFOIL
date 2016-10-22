@@ -342,7 +342,6 @@ std::vector<int> QueryEngine::execute_one_round() {
 	std::cout << std::endl;
 
 	return question;
-
 }
 
 void QueryEngine::eliminate_and_refine(std::vector<DatalogProgram>& A, std::vector<DatalogProgram>& B, bool positive, z3::expr& qs) {
@@ -481,12 +480,9 @@ void QueryEngine::work() {
 	std::cout << "converged at round: " << round << std::endl;
 
 	std::cout << "remaining programs\n";
-	for(const DatalogProgram& x : dp_ptr->Gs) {
-		std::cout << "\n\n" << dp_ptr->str(x);
-
-
-
-	}
+	//for(const DatalogProgram& x : dp_ptr->Gs) {
+	//	std::cout << "\n\n" << dp_ptr->str(x);
+	//}
 
 }
 

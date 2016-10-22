@@ -77,7 +77,7 @@ bool check_proof(const IClause& g, const IClause& s, const PII& relMap, const PI
 		}
 
 		if(!matched) {
-			std::cout<<"i=" <<i << ", cannot find a match for " << g_t.getRelNameWithTypes() << std::endl;
+			//std::cout<<"i=" <<i << ", cannot find a match for " << g_t.getRelNameWithTypes() << std::endl;
 			break;
 		}
 	}
@@ -233,11 +233,10 @@ std::set<int> IDBTR::specialize(int rule_index) const{
 	}
 
 
-	if(tc.vbody.size() > 1) {
-		return res;
-	}
-
-	std::cout << "specialize:\n" << tc.toStr() << std::endl;
+	//if(tc.vbody.size() > 1) {
+	//	return res;
+	//}
+	//std::cout << "specialize:\n" << tc.toStr() << std::endl;
 
 
 
@@ -275,16 +274,16 @@ std::set<int> IDBTR::specialize(int rule_index) const{
 			// Later if the refinement becomes unsound
 			// try to replace check_proof with explicit theta-subsumption check
 
-			std::cout << "test...\n";
-			std::cout << "    " << cl.toStr() << std::endl;
-			std::cout << "    " << rules[r].toStr() << std::endl;
+			//std::cout << "test...\n";
+			//std::cout << "    " << cl.toStr() << std::endl;
+			//std::cout << "    " << rules[r].toStr() << std::endl;
 
 
 			if(check_proof(cl, rules[r], relMap, varMap)) {
 
-				std::cout << "IDBTR::specialize, Partial order between two IClauses\n";
-				std::cout << cl.toStr() << std::endl;
-				std::cout << rules[r].toStr() << std::endl;
+				//std::cout << "IDBTR::specialize, Partial order between two IClauses\n";
+				//std::cout << cl.toStr() << std::endl;
+				//std::cout << rules[r].toStr() << std::endl;
 				res.insert(r);
 			}
 		}
