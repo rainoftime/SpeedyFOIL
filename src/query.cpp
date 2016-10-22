@@ -6,6 +6,8 @@
 #include <queue>
 #include <iterator>
 #include <functional>
+#include <iostream>
+#include <z3++.h>
 
 namespace SpeedyFOIL {
 
@@ -13,13 +15,26 @@ namespace {
 
 std::vector<int> extract_bv_values(z3::expr& E) {
 	std::vector<int> v;
-
-	int m_args = E.num_args();
-	for (int j = 0; j < m_args; ++j) {
-		z3::expr var_val = E.arg(j);
-
-		v.push_back( var_val.arg(1).get_numeral_int() );
+	std::string app_name = E.decl().name().str();
+	if(app_name == "and"){
+		// tuple with multiple fields, arity > 1
+		//std::cout << "extract_bv_value: " << E  << std::endl;
+			int m_args = E.num_args();
+			for (int j = 0; j < m_args; ++j) {
+				z3::expr var_val = E.arg(j);
+				z3::expr val = var_val.arg(1);
+				v.push_back( val.get_numeral_int() );
+			}
 	}
+	else {
+		// tuple with only one field, arity = 1
+		//std::cout << "extract_bv_values, app_name= " << app_name << std::endl;
+
+		z3::expr val = E.arg(1);
+		v.push_back(val.get_numeral_int() );
+	}
+
+
 
 	return v;
 }
@@ -104,6 +119,7 @@ z3::expr QueryEngine::build_func_constr(z3::context& context,
 }
 
 void QueryEngine::parse_and_update(z3::expr& E, int idx) {
+	//std::cout << "parse_and_update, E=" << E << std::endl;
 	std::string app_name = E.decl().name().str();
 	if (app_name == "or") {
 		int n_args = E.num_args();
@@ -114,6 +130,10 @@ void QueryEngine::parse_and_update(z3::expr& E, int idx) {
 			// prepend idx
 			tp.insert(tp.begin(), idx);
 			++vote_stats[tp];
+
+			//std::cout <<"tp: ";
+			//std::copy(tp.begin(), tp.end(), std::ostream_iterator<int>(std::cout, ","));
+			//std::cout << std::endl;
 		}
 	} else if (app_name == "and") {
 		std::vector<int> tp = extract_bv_values(E);
@@ -131,6 +151,11 @@ void QueryEngine::queryIDBs(
 
 	// Query
 	for (auto Q : queries) {
+
+		//std::cout << "Query: Relatio=" << Q.first->Name << " ";
+		//std::copy (Q.second.begin(), Q.second.end(), std::ostream_iterator<int>(std::cout, ","));
+		//std::cout << std::endl;
+
 		Relation rel = Q.first;
 		z3::func_decl f = cm_ptr->funcMap.find(rel)->second;
 
@@ -256,14 +281,18 @@ std::vector<int> QueryEngine::execute_one_round() {
 	int i=0;
 	auto it = dp_ptr->Gs.begin();
 	while(it != dp_ptr->Gs.end()) {
+
+		//std::cout <<"run program: \n";
+		//std::cout << dp_ptr->str(*it) << std::endl;
+
 		execute(*it);
 		++it;
 		++i;
 
-		if(i%500 == 0) {
-			std::cout << "i = " << i << ", warn_ct = " << warn_ct << std::endl;
-			break;
-		}
+		//if(i%2 == 0) {
+		//	std::cout << "i = " << i << ", warn_ct = " << warn_ct << std::endl;
+		//	break;
+		//}
 		//break;
 	}
 
@@ -276,9 +305,9 @@ std::vector<int> QueryEngine::execute_one_round() {
 		std::cout << std::endl;
 	}
 
-	//const int ideal = dp_ptr->Gs.size() / 2;
-	const int ideal = 500/2;
 
+	const int ideal = dp_ptr->Gs.size() / 2;
+	//const int ideal = 500/2;
 	int best = ideal;
 
 	std::set<int> votes;
@@ -300,11 +329,15 @@ std::vector<int> QueryEngine::execute_one_round() {
 
 	if(votes.size() == 1) {
 		if( *votes.begin() == dp_ptr->Gs.size() ) {
+
+			std::cout << "only one size of vote: " << *votes.begin() << ", so converged." << std::endl;
+
 			// converged !!!
 			return std::vector<int>();
 		}
 	}
 
+	std::cout << "Question: " ;
 	std::copy(question.begin(), question.end(), std::ostream_iterator<int>(std::cout, ", ") );
 	std::cout << std::endl;
 
@@ -318,6 +351,8 @@ void QueryEngine::eliminate_and_refine(std::vector<DatalogProgram>& A, std::vect
 	std::vector<DatalogProgram> dps;
 	int remove_ct = 0;
 
+	//std::cout << "A.size() = " << A.size() <<
+
 	for (DatalogProgram& x : A) {
 		if (test(x, qs) == positive) {
 			dps.push_back(std::move(x));
@@ -330,12 +365,13 @@ void QueryEngine::eliminate_and_refine(std::vector<DatalogProgram>& A, std::vect
 		}
 	}
 
+	A = std::move(dps);
 
-	std::cout << "Number of programs to eliminate: "
-			<< remove_ct << ", out of " << dp_ptr->Gs.size()
-			<< std::endl;
-
-	dp_ptr->Gs = std::move(dps);
+	//std::cout << "Number of programs to eliminate: "
+	//		<< remove_ct << ", out of " << A.size()
+	//		<< std::endl;
+	//std::cout << "dps.size = " << dps.size() << std::endl;
+	//std::cout << "A new size: " << A.size() << std::endl;
 
 
 	// generalize specific program that cannot cover  Q
@@ -376,7 +412,9 @@ void QueryEngine::eliminate_and_refine(std::vector<DatalogProgram>& A, std::vect
 		}
 	}
 
-	std::cout <<"refine_ct = " << refine_ct << std::endl;
+	B = std::move(dps);
+
+	std::cout << "removed_ct=" << remove_ct <<", refine_ct = " << refine_ct << std::endl;
 
 }
 
@@ -400,24 +438,55 @@ void QueryEngine::work() {
 
 		if (positive) {
 
+			std::cout << "positive answer for Question\n";
+
 			z3::expr q = convert_question(Q);
 			and_pos_vec.push_back(q);
 			z3::expr qs = z3::mk_and(and_pos_vec);
 
+			std::cout << "before elimination & refinement, Gs.size="
+					<< dp_ptr->Gs.size() << ", Ss.size=" << dp_ptr->Ss.size()
+					<< std::endl;
+
 			eliminate_and_refine( dp_ptr->Gs, dp_ptr->Ss, true, qs);
 
+			std::cout << "after elimination & refinement, Gs.size="
+					<< dp_ptr->Gs.size() << ", Ss.size=" << dp_ptr->Ss.size()
+					<< std::endl;
+
 		} else {
+
+			std::cout << "negative answer for Question\n";
+
 			z3::expr q = convert_question(Q);
 			or_neg_vec.push_back(q);
 			z3::expr qs = z3::mk_or(or_neg_vec);
 
+			std::cout << "before elimination & refinement, Gs.size="
+					<< dp_ptr->Gs.size() << ", Ss.size=" << dp_ptr->Ss.size()
+					<< std::endl;
+
+
 			eliminate_and_refine( dp_ptr->Ss, dp_ptr->Gs, false, qs);
+
+			std::cout << "after elimination & refinement, Gs.size="
+					<< dp_ptr->Gs.size() << ", Ss.size=" << dp_ptr->Ss.size()
+					<< std::endl;
+
 		}
 
 		//break;
 	}
 
 	std::cout << "converged at round: " << round << std::endl;
+
+	std::cout << "remaining programs\n";
+	for(const DatalogProgram& x : dp_ptr->Gs) {
+		std::cout << "\n\n" << dp_ptr->str(x);
+
+
+
+	}
 
 }
 

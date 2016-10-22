@@ -375,7 +375,7 @@ void DPManager::init_helper(bool general) {
 	const int sz = idbRules.size();
 	for(int i=0; i<sz; ++i) {
 		const IDBTR& idb = idbRules[i];
-		std::vector<std::set<int>>  vst = idb.chooseK(2, general);
+		std::vector<std::set<int>>  vst = idb.chooseK(1, general);
 		space *= vst.size();
 		VVS.push_back( std::move(vst) );
 	}
@@ -417,8 +417,8 @@ void DPManager::initGS() {
 	init_helper(true);
 	std::cout << "Gs.size = " << Gs.size() << std::endl;
 
-	init_helper(false);
-	std::cout << "Ss.size = " << Ss.size() << std::endl;
+	//init_helper(false);
+	//std::cout << "Ss.size = " << Ss.size() << std::endl;
 
 	//execute( *Gs.begin() );
 }
