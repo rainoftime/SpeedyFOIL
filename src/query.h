@@ -73,6 +73,8 @@ struct QueryEngine {
 	DPManager* dp_ptr;
 	ContextManager* cm_ptr;
 
+	std::hash<std::string> str_hash;
+	std::map<long long, std::set<std::string> > removedPrograms;
 
 
 	std::map< std::vector<int>, int > vote_stats;
@@ -92,7 +94,7 @@ struct QueryEngine {
 
 	z3::expr convert_question(std::vector<int>&);
 
-	void eliminate_and_refine(std::vector<DatalogProgram>& A, std::vector<DatalogProgram>& B, bool);
+	void eliminate_and_refine(std::vector<DatalogProgram>& A, std::vector<DatalogProgram>& B, bool, z3::expr& );
 	void work();
 
 };

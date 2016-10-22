@@ -311,7 +311,62 @@ std::vector<int> QueryEngine::execute_one_round() {
 
 }
 
-void QueryEngine::eliminate_and_refine(std::vector<DatalogProgram>& A, std::vector<DatalogProgram>& B, bool specialize) {
+void QueryEngine::eliminate_and_refine(std::vector<DatalogProgram>& A, std::vector<DatalogProgram>& B, bool positive, z3::expr& qs) {
+	// any general program that cannot cover Q should be eliminated.
+
+	std::vector<DatalogProgram> dps;
+	int remove_ct = 0;
+
+	for (DatalogProgram& x : A) {
+		if (test(x, qs) == positive) {
+			dps.push_back(std::move(x));
+		} else {
+			++remove_ct;
+
+			std::string s = dp_ptr->str(x);
+			long long h = str_hash(s);
+			removedPrograms[h].insert(s);
+		}
+	}
+
+
+	std::cout << "Number of programs to eliminate: "
+			<< remove_ct << ", out of " << dp_ptr->Gs.size()
+			<< std::endl;
+
+	dp_ptr->Gs = std::move(dps);
+
+
+	// generalize specific program that cannot cover  Q
+
+	for (DatalogProgram& x : B) {
+		if (test(x, qs)  == positive) {
+			dps.push_back(std::move(x));
+		} else {
+
+			std::queue<DatalogProgram> Queue;
+			Queue.push(std::move(x));
+
+			while (!Queue.empty()) {
+				DatalogProgram p ( std::move(Queue.front() ));
+				Queue.pop();
+
+				// here, we actually don't need to test if deleted or not
+				// as init/refineProg will never return a visited program
+
+				bool specialize = !positive;
+				std::vector<DatalogProgram> vs = dp_ptr->refineProg(p,
+						specialize);
+				for (DatalogProgram& y : vs) {
+					if (test(y, qs)) {
+						dps.push_back(std::move(y));
+					} else {
+						Queue.push(std::move(y));
+					}
+				}
+			}
+		}
+	}
 
 }
 
@@ -320,8 +375,6 @@ void QueryEngine::work() {
 	z3::expr_vector and_pos_vec(cm_ptr->C);
 	z3::expr_vector or_neg_vec (cm_ptr->C);
 
-	std::hash<std::string> str_hash;
-	std::map<long long, std::set<std::string> > removedPrograms;
 
 	int round = 0;
 	while (true) {
@@ -341,84 +394,17 @@ void QueryEngine::work() {
 			and_pos_vec.push_back(q);
 			z3::expr qs = z3::mk_and(and_pos_vec);
 
-			// any general program that cannot cover Q should be eliminated.
-
-			std::vector<DatalogProgram> dps;
-			int remove_ct = 0;
-
-			for (DatalogProgram& x : dp_ptr->Gs) {
-				if (test(x, qs)) {
-					dps.push_back(std::move(x));
-				} else {
-					++remove_ct;
-					if (remove_ct % 1000 == 0) {
-						std::cout << "remove.size = " << remove_ct << std::endl
-								<< "The following program will be eliminated by: ";
-						std::copy(Q.begin(), Q.end(),
-								std::ostream_iterator<int>(std::cout, ", "));
-						std::cout << std::endl;
-
-						std::cout << dp_ptr->str(x) << std::endl;
-					}
-
-					std::string s = dp_ptr->str(x);
-					long long h = str_hash(s);
-					removedPrograms[h].insert(s);
-				}
-			}
-
-
-			std::cout << "Number of programs to eliminate: "
-					<< remove_ct << ", out of " << dp_ptr->Gs.size()
-					<< std::endl;
-
-			dp_ptr->Gs = std::move(dps);
-
-
-			// generalize specific program that cannot cover  Q
-
-			for (DatalogProgram& x : dp_ptr->Ss) {
-				if (test(x, qs)) {
-					dps.push_back(std::move(x));
-				} else {
-
-					std::queue<DatalogProgram> Queue;
-					Queue.push(std::move(x));
-
-					while (!Queue.empty()) {
-						DatalogProgram p ( std::move(Queue.front() ));
-						Queue.pop();
-
-						// here, we actually don't need to test if deleted or not
-						// as init/refineProg will never return a visited program
-
-						std::vector<DatalogProgram> vs = dp_ptr->refineProg(p,
-								false);
-						for (DatalogProgram& y : vs) {
-							if (test(y, qs)) {
-								dps.push_back(std::move(y));
-							} else {
-								Queue.push(std::move(y));
-							}
-						}
-					}
-				}
-			}
+			eliminate_and_refine( dp_ptr->Gs, dp_ptr->Ss, true, qs);
 
 		} else {
 			z3::expr q = convert_question(Q);
 			or_neg_vec.push_back(q);
 			z3::expr qs = z3::mk_or(or_neg_vec);
 
-			// eliminate specific program covering Q
-
-
-			// any general program that can cover Q needs refinement
-
-
+			eliminate_and_refine( dp_ptr->Gs, dp_ptr->Ss, false, qs);
 		}
 
-		break;
+		//break;
 	}
 
 	std::cout << "converged at round: " << round << std::endl;
