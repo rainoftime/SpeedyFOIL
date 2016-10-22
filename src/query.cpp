@@ -340,19 +340,21 @@ void QueryEngine::eliminate_and_refine(std::vector<DatalogProgram>& A, std::vect
 
 	// generalize specific program that cannot cover  Q
 
+	int refine_ct = 0;
 	for (DatalogProgram& x : B) {
 		if (test(x, qs)  == positive) {
 			dps.push_back(std::move(x));
 		} else {
 
-			std::cout <<"positive=" << positive << ", going to refine \n" << dp_ptr->str(x);
+			//std::cout <<"positive=" << positive << ", going to refine \n" << dp_ptr->str(x);
 
 			std::queue<DatalogProgram> Queue;
 			Queue.push(std::move(x));
 
 			while (!Queue.empty()) {
+				++refine_ct;
 
-				std::cout <<"Queue.size = " << Queue.size() << std::endl;
+				//std::cout <<"Queue.size = " << Queue.size() << std::endl;
 
 				DatalogProgram p ( std::move(Queue.front() ));
 				Queue.pop();
@@ -373,6 +375,8 @@ void QueryEngine::eliminate_and_refine(std::vector<DatalogProgram>& A, std::vect
 			}
 		}
 	}
+
+	std::cout <<"refine_ct = " << refine_ct << std::endl;
 
 }
 
