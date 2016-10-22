@@ -344,10 +344,15 @@ void QueryEngine::eliminate_and_refine(std::vector<DatalogProgram>& A, std::vect
 			dps.push_back(std::move(x));
 		} else {
 
+			std::cout <<"positive=" << positive << ", going to refine \n" << dp_ptr->str(x);
+
 			std::queue<DatalogProgram> Queue;
 			Queue.push(std::move(x));
 
 			while (!Queue.empty()) {
+
+				std::cout <<"Queue.size = " << Queue.size() << std::endl;
+
 				DatalogProgram p ( std::move(Queue.front() ));
 				Queue.pop();
 
@@ -358,7 +363,7 @@ void QueryEngine::eliminate_and_refine(std::vector<DatalogProgram>& A, std::vect
 				std::vector<DatalogProgram> vs = dp_ptr->refineProg(p,
 						specialize);
 				for (DatalogProgram& y : vs) {
-					if (test(y, qs)) {
+					if (test(y, qs) == positive) {
 						dps.push_back(std::move(y));
 					} else {
 						Queue.push(std::move(y));
