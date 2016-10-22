@@ -306,9 +306,11 @@ std::vector<int> QueryEngine::execute_one_round() {
 	}
 
 
-	const int ideal = dp_ptr->Gs.size() / 2;
+	const int ideal = (dp_ptr->Gs.size() + 1) / 2;
 	//const int ideal = 500/2;
 	int best = ideal;
+
+	std::cout <<"ideal=" << ideal << ", best=" << best << std::endl;
 
 	std::set<int> votes;
 	std::vector<int> question;
@@ -319,8 +321,15 @@ std::vector<int> QueryEngine::execute_one_round() {
 		if(dis < 0) dis =-dis;
 
 		if(dis < best) {
+
+			std::cout << "update best: dis=" << dis << ", best=" << best << std::endl;
 			question = pr.first;
 			best = dis;
+			std::cout << "Question becomes: " ;
+			std::copy(question.begin(), question.end(), std::ostream_iterator<int>(std::cout, ", ") );
+			std::cout << std::endl;
+
+
 		}
 	}
 
@@ -480,9 +489,9 @@ void QueryEngine::work() {
 	std::cout << "converged at round: " << round << std::endl;
 
 	std::cout << "remaining programs\n";
-	//for(const DatalogProgram& x : dp_ptr->Gs) {
-	//	std::cout << "\n\n" << dp_ptr->str(x);
-	//}
+	for(const DatalogProgram& x : dp_ptr->Gs) {
+		std::cout << "\n\n" << dp_ptr->str(x);
+	}
 
 }
 
