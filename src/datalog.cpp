@@ -20,17 +20,70 @@ namespace {
 bool check_proof(const IClause& g, const IClause& s, const PII& relMap, const PII& varMap) {
 
 	if(g.cl_hd.pRel != s.cl_hd.pRel) {
+		std::cout << "head relation does not match: g=" << g.cl_hd.pRel
+				<< ", s=" << g.cl_hd.pRel << std::endl;
 		return false;
 	}
 
+	/*
 	for(auto pr : relMap) {
+		// incorrect
 		if( g.cl_body[pr.first].pRel != s.cl_body[pr.second].pRel){
+			std::cout <<pr.first << "-th predicate name does not match " << pr.second << "-th \n";
 			return false;
+		}
+	}*/
+
+	// as variable order directly check
+
+	// varMap seems unnecessary, as IClause does not change var orders from TClause
+	// but generalization really matter on variable names, e.g. v2 -> v1
+
+
+	// first map variable names, then check if the body is a strict subset of the other
+
+
+	bool matched = false;
+	int g_sz = g.cl_body.size();
+	int s_sz = s.cl_body.size();
+	for(int i=0; i < g_sz; ++i) {
+		const TRelation& g_t = g.cl_body[i];
+
+		matched = false;
+		for(int j=0; j < s_sz; ++j) {
+			const TRelation& s_t = s.cl_body[j];
+			if(g_t.pRel != s_t.pRel) {
+				continue;
+			}
+
+
+			int arity = s_t.getArity();
+			int k = 0;
+			while(k < arity){
+				int g_var = g.tc.vbody[i].vdom[k];
+				int s_var = s.tc.vbody[j].vdom[k];
+
+				auto it = varMap.find(g_var);
+				if(it == varMap.end() || it->second != s_var){
+					break;
+				}
+				++k;
+			}
+
+			if(k == arity){
+				matched = true;
+				break;
+			}
+		}
+
+		if(!matched) {
+			std::cout<<"i=" <<i << ", cannot find a match for " << g_t.getRelNameWithTypes() << std::endl;
+			break;
 		}
 	}
 
-	// varMap seems unnecessary, as IClause does not change var orders from TClause
-	return true;
+
+	return matched;
 }
 
 std::vector<std::set<int>> chooseK_helper(int n, int i, const std::vector<int>& v) {
@@ -179,6 +232,15 @@ std::set<int> IDBTR::specialize(int rule_index) const{
 		return res;
 	}
 
+
+	if(tc.vbody.size() > 1) {
+		return res;
+	}
+
+	std::cout << "specialize:\n" << tc.toStr() << std::endl;
+
+
+
 	const std::set<int>& tmpls = it_tmpls->second;
 
 	// Note that there could be multiple proofs between two templates
@@ -212,6 +274,12 @@ std::set<int> IDBTR::specialize(int rule_index) const{
 		for(int r : it2->second) {
 			// Later if the refinement becomes unsound
 			// try to replace check_proof with explicit theta-subsumption check
+
+			std::cout << "test...\n";
+			std::cout << "    " << cl.toStr() << std::endl;
+			std::cout << "    " << rules[r].toStr() << std::endl;
+
+
 			if(check_proof(cl, rules[r], relMap, varMap)) {
 
 				std::cout << "IDBTR::specialize, Partial order between two IClauses\n";
@@ -313,7 +381,7 @@ void DPManager::exploreCandidateRules() {
 		std::cout << "most specific: " << tempM.getMostSpecific().size() << std::endl;
 		std::cout << "independent: " << tempM.getIndependent().size() << std::endl;
 
-		//tempM.logPO2dot( rel.getRelName() + ".dot" );
+		tempM.logPO2dot( rel.getRelName() + ".dot" );
 
 		IDBTR idb(rel);
 		idb.tm = std::move(tempM);
@@ -438,120 +506,6 @@ std::vector<ConcreteRule> DPManager::getConcreteRules(const DatalogProgram& dp) 
 	return res;
 }
 
-std::vector< std::vector<int> > DPManager::execute(const DatalogProgram& dp) {
-	std::vector< std::vector<int> > res2;
-
-	  z3::set_param("fixedpoint.engine", "datalog");
-	  z3::context c;
-
-
-
-
-
-	  //z3::sort bv3 = c.int_sort(); //
-	  z3::sort bv3 = c.bv_sort(3); //
-	  z3::sort bl = c.bool_sort();
-
-	  z3::func_decl edge = c.function("edge", bv3, bv3, bl);
-	  z3::func_decl path = c.function("path", bv3, bv3, bl);
-	  z3::func_decl p = c.function("p", bv3, bl);
-
-	  z3::expr va = c.constant("a", bv3);
-	  z3::expr vb = c.constant("b", bv3);
-	  z3::expr vc = c.constant("c", bv3);
-
-	  z3::expr r1 = z3::forall(va, vb, z3::implies( edge(va,vb), path(va,vb) ));
-
-
-	  z3::expr_vector ev(c); // this should be defined before fp, otherwise will crash
-	  ev.push_back( edge(va,vb) );
-	  ev.push_back( path(vb,vc) );
-	  z3::expr r2 = z3::forall(va, vb, vc, z3::implies( z3::mk_and(ev), path(va,vc) ));
-
-	  //z3::expr r2 = z3::implies( z3::mk_and(ev), path(va,vc) );
-
-	  //z3::expr r2 = z3::forall(va, vb, vc, z3::implies(  edge(va,vb) && path(vb,vc) , path(va,vc) ));
-	  //z3::expr r2 = z3::forall(va, vb, vc, z3::implies( edge(va,vb), path(va,vc) ));
-
-
-	  z3::symbol s_r1 = c.str_symbol("r1");
-	  z3::symbol s_r2 = c.str_symbol("r2");
-
-	  z3::expr v1 = c.bv_val(1, 3); // c.int_val(1); //
-	  z3::expr v2 = c.bv_val(2, 3); // c.int_val(2); //
-	  z3::expr v3 = c.bv_val(3, 3); // c.int_val(3); //
-	  z3::expr v4 = c.bv_val(4, 3); // c.int_val(4); //
-
-//	  z3::expr v1 =  c.int_val(1); //
-//	  z3::expr v2 =  c.int_val(2); //
-//	  z3::expr v3 =  c.int_val(3); //
-//	  z3::expr v4 =  c.int_val(4); //
-
-
-	  Z3_fixedpoint fp = Z3_mk_fixedpoint( c );
-	  Z3_fixedpoint_register_relation(c, fp, edge);
-	  Z3_fixedpoint_register_relation(c, fp, path);
-	  Z3_fixedpoint_register_relation(c, fp, p);
-
-	  Z3_fixedpoint_add_rule(c, fp, r1, s_r1);
-	  Z3_fixedpoint_add_rule(c, fp, r2, s_r2);
-
-	  z3::symbol name = c.str_symbol("");
-	  Z3_fixedpoint_add_rule(c, fp, edge(v1, v2), name);
-	  Z3_fixedpoint_add_rule(c, fp, edge(v1, v3), name);
-	  Z3_fixedpoint_add_rule(c, fp, edge(v2, v4), name);
-
-
-
-	  Z3_lbool res = Z3_fixedpoint_query (c, fp, z3::exists(va,vb,path(va,vb)) );
-
-
-	  std::cout << "res = " << res << std::endl;
-
-	  if(res == Z3_L_FALSE) {
-	    std::cout << "res is L_false" << std::endl;
-	  }
-	  else if(res == Z3_L_UNDEF) {
-	    std::cout << "res is L_undef" << std::endl;
-	  }
-	  else if(res == Z3_L_TRUE) {
-	    std::cout << "res is L_true" << std::endl;
-	  }
-	  else {
-	    std::cout << "res is unknown value" << std::endl;
-	  }
-
-
-	  Z3_ast ast_res = Z3_fixedpoint_get_answer(c,fp);
-
-	  //z3::ast detailed_res (c, ast_res);
-	  z3::expr detailed_res (c, ast_res);
-
-	  if(detailed_res.is_app()) {
-	    std::cout << "detailed_res is app" << std::endl;
-
-	    int n_args = detailed_res.num_args();
-	    std::cout << "number of args: " << n_args << std::endl;
-	    for(int i=0; i < n_args; ++i) {
-	    	z3::expr e = detailed_res.arg(i);
-	    	std::cout << i << "-th arg: " << e << std::endl;
-
-	    	int m_args = e.num_args();
-	    	for(int j=0; j< m_args; ++j){
-	    		z3::expr e2 = e.arg(j);
-	    		int x;
-	    		Z3_get_numeral_int(c, e2.arg(1), &x);
-	    		std::cout <<"   " << e.arg(j) << ",  " << e2.arg(1) << ", x=" << x << std::endl;
-	    	}
-	    }
-
-	  }
-
-	  std::cout << detailed_res << std::endl;
-
-	return res2;
-}
-
 
 std::string DPManager::str(const DatalogProgram& dp) {
 	std::stringstream ss;
@@ -621,5 +575,19 @@ bool DPManager::ask(std::vector<int>& Q) {
 
 	return idbValues[idb_index].ask_and_update(tp);
 }
+
+void DPManager::test_specialize() {
+
+	for(const IDBTR& idb : idbRules ) {
+		if(idb.rel.getRelName() == "reptile"){
+			int sz = idb.rules.size();
+			for(int i=0; i < sz; ++i) {
+				idb.specialize(i);
+			}
+		}
+	}
+
+}
+
 
 } // end of namespace SpeedyFOIL
