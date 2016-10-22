@@ -443,6 +443,17 @@ void DPManager::init_helper(bool general) {
 	for(int i=0; i<sz; ++i) {
 		const IDBTR& idb = idbRules[i];
 		std::vector<std::set<int>>  vst = idb.chooseK(2, general);
+
+		auto it = vst.begin();
+		while(it != vst.end()){
+			if(it->empty()) {
+				it = vst.erase(it);
+			}
+			else{
+				++it;
+			}
+		}
+
 		space *= vst.size();
 		VVS.push_back( std::move(vst) );
 	}
