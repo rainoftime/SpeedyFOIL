@@ -440,8 +440,9 @@ std::vector<DatalogProgram> DPManager::refineProgWithTarget(const DatalogProgram
 	std::vector<DatalogProgram> res;
 	std::set<int> refine_st = backwardAnalysis(prog, idb_index);
 
+	const int DEPTH = 2;
 
-	if(refine_st.size() >= 2) {return res;}
+	if(refine_st.size() >= DEPTH) {return res;}
 	/*
 	std::cout <<"\n\n"<< str(prog);
 	std::cout << "after backward analysis from " << idb_index << std::endl;
@@ -475,6 +476,20 @@ std::vector<DatalogProgram> DPManager::refineProgWithTarget(const DatalogProgram
 
 				DatalogProgram dp(this);
 				dp.state = std::move(cp_state);
+
+				bool pass = true;
+				for(auto pr : dp.state) {
+					int index = pr.first;
+					std::set<int> s = backwardAnalysis(prog, idb_index);
+					if(s.size() >= DEPTH){
+						pass = false;
+						break;
+					}
+				}
+				if(!pass) {
+					continue;
+				}
+
 
 				if(! hash_and_record(dp) ){
 					// already existed, skip
