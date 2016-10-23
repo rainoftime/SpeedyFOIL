@@ -353,7 +353,9 @@ std::vector<int> QueryEngine::execute_one_round() {
 	return question;
 }
 
-void QueryEngine::eliminate_and_refine(std::vector<DatalogProgram>& A, std::vector<DatalogProgram>& B, bool positive, z3::expr& qs) {
+void QueryEngine::eliminate_and_refine(std::vector<DatalogProgram>& A,
+		std::vector<DatalogProgram>& B, bool positive, z3::expr& qs,
+		std::vector<int>& Q) {
 	// any general program that cannot cover Q should be eliminated.
 
 	std::vector<DatalogProgram> dps;
@@ -390,7 +392,8 @@ void QueryEngine::eliminate_and_refine(std::vector<DatalogProgram>& A, std::vect
 			dps.push_back(std::move(x));
 		} else {
 
-			//std::cout <<"positive=" << positive << ", going to refine \n" << dp_ptr->str(x);
+			std::cout <<"positive=" << positive << ", going to refine \n" << dp_ptr->str(x);
+			std::cout << "before: refine_ct = " << refine_ct << std::endl;
 
 			std::queue<DatalogProgram> Queue;
 			Queue.push(std::move(x));
@@ -407,8 +410,8 @@ void QueryEngine::eliminate_and_refine(std::vector<DatalogProgram>& A, std::vect
 				// as init/refineProg will never return a visited program
 
 				bool specialize = !positive;
-				std::vector<DatalogProgram> vs = dp_ptr->refineProg(p,
-						specialize);
+				std::vector<DatalogProgram> vs = dp_ptr->refineProgWithTarget(p,
+						specialize, Q[0]);
 				for (DatalogProgram& y : vs) {
 					if (test(y, qs) == positive) {
 						dps.push_back(std::move(y));
@@ -417,6 +420,9 @@ void QueryEngine::eliminate_and_refine(std::vector<DatalogProgram>& A, std::vect
 					}
 				}
 			}
+
+			std::cout << "after: refine_ct = " << refine_ct << std::endl;
+
 		}
 	}
 
@@ -456,7 +462,7 @@ void QueryEngine::work() {
 					<< dp_ptr->Gs.size() << ", Ss.size=" << dp_ptr->Ss.size()
 					<< std::endl;
 
-			eliminate_and_refine( dp_ptr->Gs, dp_ptr->Ss, true, qs);
+			eliminate_and_refine( dp_ptr->Gs, dp_ptr->Ss, true, qs, Q);
 
 			std::cout << "after elimination & refinement, Gs.size="
 					<< dp_ptr->Gs.size() << ", Ss.size=" << dp_ptr->Ss.size()
@@ -475,7 +481,7 @@ void QueryEngine::work() {
 					<< std::endl;
 
 
-			eliminate_and_refine( dp_ptr->Ss, dp_ptr->Gs, false, qs);
+			eliminate_and_refine( dp_ptr->Ss, dp_ptr->Gs, false, qs, Q);
 
 			std::cout << "after elimination & refinement, Gs.size="
 					<< dp_ptr->Gs.size() << ", Ss.size=" << dp_ptr->Ss.size()
