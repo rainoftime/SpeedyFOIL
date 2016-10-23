@@ -5,6 +5,7 @@
 #include <map>
 #include <vector>
 #include <iostream>
+#include <iterator>
 #include <algorithm>
 #include <z3++.h>
 
@@ -440,10 +441,13 @@ std::vector<DatalogProgram> DPManager::refineProgWithTarget(const DatalogProgram
 	std::set<int> refine_st = backwardAnalysis(prog, idb_index);
 
 
+	if(refine_st.size() >= 2) {return res;}
+	/*
 	std::cout <<"\n\n"<< str(prog);
 	std::cout << "after backward analysis from " << idb_index << std::endl;
 	std::copy(refine_st.begin(), refine_st.end(), std::ostream_iterator<int>(std::cout, ","));
 	std::cout << std::endl;
+	*/
 
 	for(auto pr : prog.state) {
 		int idb_index = pr.first;
