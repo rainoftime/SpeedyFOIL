@@ -435,6 +435,96 @@ std::vector<DatalogProgram> DPManager::refineProg(const DatalogProgram& prog, bo
 }
 
 
+std::vector<DatalogProgram> DPManager::refineProgWithTarget(const DatalogProgram& prog, bool specialize, int idb_index) {
+	std::vector<DatalogProgram> res;
+	std::set<int> refine_st = backwardAnalysis(prog, idb_index);
+
+
+	std::cout <<"\n\n"<< str(prog);
+	std::cout << "after backward analysis from " << idb_index << std::endl;
+	std::copy(refine_st.begin(), refine_st.end(), std::ostream_iterator<int>(std::cout, ","));
+	std::cout << std::endl;
+
+	for(auto pr : prog.state) {
+		int idb_index = pr.first;
+		if(refine_st.find(idb_index) == refine_st.end()) {
+			continue;
+		}
+
+		const IDBTR & idb = idbRules[idb_index];
+
+		const std::set<int>& rule_st = pr.second;
+
+		// specialize one rule
+		for(int rl : rule_st) {
+			// try all candidates for one rule
+			std::set<int> candidates = specialize ? idb.specialize(rl) : idb.generalize(rl);
+			for(int can : candidates) {
+				std::set<int> cp_st = rule_st;
+				// NOTE: erase one then insert one,
+				// #rules for an IDB does not change
+				cp_st.erase(rl);
+				cp_st.insert(can);
+
+				std::map<int, std::set<int>> cp_state = prog.state;
+				cp_state[idb_index] = std::move(cp_st);
+
+				DatalogProgram dp(this);
+				dp.state = std::move(cp_state);
+
+				if(! hash_and_record(dp) ){
+					// already existed, skip
+					continue;
+				}
+
+				// NOTE: this insertion happens in three layer nested loops, could explode!!
+				//res.insert( std::move(dp) );
+				res.push_back( std::move(dp) );
+			}
+		}
+
+	}
+
+	return res;
+}
+
+std::set<int> DPManager::backwardAnalysis(const DatalogProgram& prog, int idb_index) const {
+	std::set<int> st;
+
+	int prev_size = 0;
+	st.insert(idb_index);
+	while(prev_size < st.size()){
+		prev_size = st.size();
+		std::set<int> tmp_st;
+
+		for(int x : st) {
+			auto it = prog.state.find(x);
+			if(it == prog.state.end() || it->second.empty()){
+				continue;
+			}
+
+			const std::vector<IClause>& rules = idbRules[x].rules;
+			for(int r_index : it->second) {
+				const IClause& cl = rules[r_index];
+				for(const TRelation& trel : cl.cl_body){
+					int k = findIDBIndex(trel.pRel);
+					if(k>=0){
+						tmp_st.insert(k);
+					}
+				}
+			}
+		}
+
+		for(int x : tmp_st){
+			st.insert(x);
+		}
+	}
+
+	return st;
+}
+
+
+
 void DPManager::init_helper(bool general) {
 	std::vector< std::vector< std::set<int> > > VVS;
 
@@ -442,7 +532,7 @@ void DPManager::init_helper(bool general) {
 	const int sz = idbRules.size();
 	for(int i=0; i<sz; ++i) {
 		const IDBTR& idb = idbRules[i];
-		std::vector<std::set<int>>  vst = idb.chooseK(2, general);
+		std::vector<std::set<int>>  vst = idb.chooseK(1, general);
 
 		auto it = vst.begin();
 		while(it != vst.end()){

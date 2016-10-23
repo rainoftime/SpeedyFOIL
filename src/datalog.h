@@ -135,6 +135,10 @@ struct DPManager {
 
 	std::vector<DatalogProgram> refineProg(const DatalogProgram& prog, bool specialize);
 
+	std::vector<DatalogProgram> refineProgWithTarget(const DatalogProgram& prog, bool specialize, int idb_index);
+
+	std::set<int> backwardAnalysis(const DatalogProgram& prog, int idb_index) const;
+
 	int findIDBIndex(Relation r) const;
 
 	bool hash_and_record(const DatalogProgram&);
