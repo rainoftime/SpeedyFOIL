@@ -135,7 +135,7 @@ void QueryEngine::parse_and_update(z3::expr& E, int idx) {
 			//std::copy(tp.begin(), tp.end(), std::ostream_iterator<int>(std::cout, ","));
 			//std::cout << std::endl;
 		}
-	} else if (app_name == "and") {
+	} else if (app_name == "and" || app_name == "=") {
 		std::vector<int> tp = extract_bv_values(E);
 		tp.insert(tp.begin(), idx);
 		++vote_stats[tp];
@@ -392,8 +392,8 @@ void QueryEngine::eliminate_and_refine(std::vector<DatalogProgram>& A,
 			dps.push_back(std::move(x));
 		} else {
 
-			std::cout <<"positive=" << positive << ", going to refine \n" << dp_ptr->str(x);
-			std::cout << "before: refine_ct = " << refine_ct << std::endl;
+			//std::cout <<"positive=" << positive << ", going to refine \n" << dp_ptr->str(x);
+			//std::cout << "before: refine_ct = " << refine_ct << std::endl;
 
 			std::queue<DatalogProgram> Queue;
 			Queue.push(std::move(x));
@@ -421,7 +421,7 @@ void QueryEngine::eliminate_and_refine(std::vector<DatalogProgram>& A,
 				}
 			}
 
-			std::cout << "after: refine_ct = " << refine_ct << std::endl;
+			//std::cout << "after: refine_ct = " << refine_ct << std::endl;
 
 		}
 	}
