@@ -440,9 +440,9 @@ std::vector<DatalogProgram> DPManager::refineProgWithTarget(const DatalogProgram
 	std::vector<DatalogProgram> res;
 	std::set<int> refine_st = backwardAnalysis(prog, idb_index);
 
-	const int DEPTH = 2;
+	const int DEPTH = -1;
 
-	if(refine_st.size() >= DEPTH) {return res;}
+	if(DEPTH > 0 && refine_st.size() >= DEPTH) {return res;}
 	/*
 	std::cout <<"\n\n"<< str(prog);
 	std::cout << "after backward analysis from " << idb_index << std::endl;
@@ -477,17 +477,19 @@ std::vector<DatalogProgram> DPManager::refineProgWithTarget(const DatalogProgram
 				DatalogProgram dp(this);
 				dp.state = std::move(cp_state);
 
-				bool pass = true;
-				for(auto pr : dp.state) {
-					int index = pr.first;
-					std::set<int> s = backwardAnalysis(prog, idb_index);
-					if(s.size() >= DEPTH){
-						pass = false;
-						break;
+				if (DEPTH > 0) {
+					bool pass = true;
+					for (auto pr : dp.state) {
+						int index = pr.first;
+						std::set<int> s = backwardAnalysis(prog, idb_index);
+						if (s.size() >= DEPTH) {
+							pass = false;
+							break;
+						}
 					}
-				}
-				if(!pass) {
-					continue;
+					if (!pass) {
+						continue;
+					}
 				}
 
 
@@ -551,7 +553,7 @@ void DPManager::init_helper(bool general) {
 	const int sz = idbRules.size();
 	for(int i=0; i<sz; ++i) {
 		const IDBTR& idb = idbRules[i];
-		std::vector<std::set<int>>  vst = idb.chooseK(1, general);
+		std::vector<std::set<int>>  vst = idb.chooseK(2, general);
 
 		auto it = vst.begin();
 		while(it != vst.end()){
