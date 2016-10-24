@@ -76,8 +76,7 @@ struct QueryEngine {
 	std::hash<std::string> str_hash;
 	std::map<long long, std::set<std::string> > removedPrograms;
 
-
-	std::map< std::vector<int>, int > vote_stats;
+	std::map<std::vector<int>, int> vote_stats;
 
 	z3::expr build_func_constr(z3::context& context,
 			std::map<int, z3::expr>& z3_vars,
@@ -85,7 +84,9 @@ struct QueryEngine {
 
 	std::vector<int> execute_one_round();
 
-	FixedPoint prepare(const DatalogProgram & dp, std::set<std::pair<Relation, std::vector<int>>>& queries);
+	FixedPoint prepare(const DatalogProgram & dp,
+			std::set<std::pair<Relation, std::vector<int>>>&queries);
+
 	void execute(const DatalogProgram & dp);
 	void queryIDBs(std::set<std::pair<Relation, std::vector<int>>>& queries, FixedPoint& fp);
 	void parse_and_update(z3::expr&, int);
@@ -94,7 +95,8 @@ struct QueryEngine {
 
 	z3::expr convert_question(std::vector<int>&);
 
-	void eliminate_and_refine(std::vector<DatalogProgram>& A, std::vector<DatalogProgram>& B, bool, z3::expr&, std::vector<int>& );
+	void eliminate_and_refine(std::vector<DatalogProgram>& A, std::vector<DatalogProgram>& B, bool,
+			z3::expr&, z3::expr&, std::vector<int>& );
 	void work();
 
 };

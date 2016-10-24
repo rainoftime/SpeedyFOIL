@@ -354,7 +354,7 @@ std::vector<int> QueryEngine::execute_one_round() {
 }
 
 void QueryEngine::eliminate_and_refine(std::vector<DatalogProgram>& A,
-		std::vector<DatalogProgram>& B, bool positive, z3::expr& qs,
+		std::vector<DatalogProgram>& B, bool positive, z3::expr& pos_qs, z3::expr& neg_qs,
 		std::vector<int>& Q) {
 	// any general program that cannot cover Q should be eliminated.
 
@@ -364,7 +364,7 @@ void QueryEngine::eliminate_and_refine(std::vector<DatalogProgram>& A,
 	//std::cout << "A.size() = " << A.size() <<
 
 	for (DatalogProgram& x : A) {
-		if (test(x, qs) ) {
+		if (test(x, pos_qs) && ! test(x,neg_qs) ) {
 			dps.push_back(std::move(x));
 		} else {
 			++remove_ct;
@@ -388,7 +388,7 @@ void QueryEngine::eliminate_and_refine(std::vector<DatalogProgram>& A,
 
 	int refine_ct = 0;
 	for (DatalogProgram& x : B) {
-		if (test(x, qs) ) {
+		if (test(x, pos_qs) && ! test(x,neg_qs) ) {
 			dps.push_back(std::move(x));
 		} else {
 
@@ -413,7 +413,7 @@ void QueryEngine::eliminate_and_refine(std::vector<DatalogProgram>& A,
 				std::vector<DatalogProgram> vs = dp_ptr->refineProgWithTarget(p,
 						specialize, Q[0]);
 				for (DatalogProgram& y : vs) {
-					if (test(y, qs) ) {
+					if (test(x, pos_qs) && ! test(x,neg_qs)  ) {
 						dps.push_back(std::move(y));
 					} else {
 						Queue.push(std::move(y));
@@ -461,13 +461,13 @@ void QueryEngine::work() {
 			z3::expr and_qs = z3::mk_and(and_pos_vec);
 			z3::expr or_qs = z3::mk_or(or_neg_vec);
 
-			z3::expr qs = and_qs && (!or_qs);
+			//z3::expr qs = and_qs && (!or_qs);
 
 			std::cout << "before elimination & refinement, Gs.size="
 					<< dp_ptr->Gs.size() << ", Ss.size=" << dp_ptr->Ss.size()
 					<< std::endl;
 
-			eliminate_and_refine( dp_ptr->Gs, dp_ptr->Ss, true, qs, Q);
+			eliminate_and_refine( dp_ptr->Gs, dp_ptr->Ss, true, and_qs, or_qs, Q);
 
 			std::cout << "after elimination & refinement, Gs.size="
 					<< dp_ptr->Gs.size() << ", Ss.size=" << dp_ptr->Ss.size()
@@ -482,14 +482,14 @@ void QueryEngine::work() {
 			z3::expr or_qs = z3::mk_or(or_neg_vec);
 			z3::expr and_qs = z3::mk_and(and_pos_vec);
 
-			z3::expr qs = and_qs && (!or_qs);
+			//z3::expr qs = and_qs && (!or_qs);
 
 			std::cout << "before elimination & refinement, Gs.size="
 					<< dp_ptr->Gs.size() << ", Ss.size=" << dp_ptr->Ss.size()
 					<< std::endl;
 
 
-			eliminate_and_refine( dp_ptr->Ss, dp_ptr->Gs, false, qs, Q);
+			eliminate_and_refine( dp_ptr->Ss, dp_ptr->Gs, false, and_qs, or_qs, Q);
 
 			std::cout << "after elimination & refinement, Gs.size="
 					<< dp_ptr->Gs.size() << ", Ss.size=" << dp_ptr->Ss.size()
