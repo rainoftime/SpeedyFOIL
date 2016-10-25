@@ -262,6 +262,8 @@ void QueryEngine::execute(const DatalogProgram& dp) {
 	const int after = warn_ct;
 	if(before != after) {
 		fail_to_derive.insert( dp.prog_id );
+		//std::cout << "will cancel vote for program: \n" << dp_ptr->str(dp) << std::endl;
+		queryIDBs(queries, fp, true);
 	}
 }
 
@@ -321,6 +323,27 @@ std::vector<int> QueryEngine::execute_one_round() {
 		//}
 		//break;
 	}
+
+
+	int cancel_ct = 0;
+	std::vector<DatalogProgram> dps;
+	for(DatalogProgram& x : dp_ptr->Gs) {
+		if(fail_to_derive.find(x.prog_id) == fail_to_derive.end()) {
+			dps.push_back( std::move(x) );
+		}
+		else{
+			++cancel_ct;
+		}
+	}
+
+	dp_ptr->Gs =std::move(dps);
+
+	std::cout << "cancel votes for " << cancel_ct << " programs, now Gs:" << dp_ptr->Gs.size() << std::endl;
+
+
+
+
+
 
 #ifdef LOG_REFINEMENT_LAYER_GRAPH
 	layers.push_back(std::move(v));
@@ -419,8 +442,7 @@ void QueryEngine::eliminate_and_refine(std::vector<DatalogProgram>& A,
 	//std::cout << "A.size() = " << A.size() <<
 
 	for (DatalogProgram& x : A) {
-		if (fail_to_derive.find(x.prog_id) == fail_to_derive.end()
-				&& test(x, pos_qs) && !test(x, neg_qs)) {
+		if (test(x, pos_qs) && !test(x, neg_qs)) {
 			dps.push_back(std::move(x));
 		} else {
 			++remove_ct;
