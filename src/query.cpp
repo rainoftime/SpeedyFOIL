@@ -10,6 +10,8 @@
 #include <fstream>
 #include <z3++.h>
 
+//#define LOG_REFINEMENT_LAYER_GRAPH
+
 namespace SpeedyFOIL {
 
 namespace {
@@ -279,20 +281,21 @@ std::vector<int> QueryEngine::execute_one_round() {
 	vote_stats.clear();
 	warn_ct = 0;
 
+#ifdef LOG_REFINEMENT_LAYER_GRAPH
 	std::vector<int> v;
+#endif
 
-	int i=0;
 	auto it = dp_ptr->Gs.begin();
 	while(it != dp_ptr->Gs.end()) {
 
+#ifdef LOG_REFINEMENT_LAYER_GRAPH
 		v.push_back( it->prog_id );
-
+#endif
 		//std::cout <<"run program: \n";
 		//std::cout << dp_ptr->str(*it) << std::endl;
 
 		execute(*it);
 		++it;
-		++i;
 
 		//if(i%2 == 0) {
 		//	std::cout << "i = " << i << ", warn_ct = " << warn_ct << std::endl;
@@ -301,7 +304,9 @@ std::vector<int> QueryEngine::execute_one_round() {
 		//break;
 	}
 
+#ifdef LOG_REFINEMENT_LAYER_GRAPH
 	layers.push_back(std::move(v));
+#endif
 
 	std::cout << "warn_ct = " << warn_ct << std::endl;
 	std::cout << "\ntuple stats: \n";
@@ -314,7 +319,6 @@ std::vector<int> QueryEngine::execute_one_round() {
 
 
 	const int ideal = (dp_ptr->Gs.size() + 1) / 2;
-	//const int ideal = 500/2;
 	int best = ideal;
 
 	std::cout <<"ideal=" << ideal << ", best=" << best << std::endl;
@@ -359,6 +363,7 @@ std::vector<int> QueryEngine::execute_one_round() {
 		}
 	}
 
+
 	/*
 	std::sort(order.begin(), order.end());
 	// find the first positive one
@@ -374,9 +379,8 @@ std::vector<int> QueryEngine::execute_one_round() {
 			question = v;
 			break;
 		}
+	}*/
 
-	}
-	*/
 
 	std::cout << "Question: " ;
 	std::copy(question.begin(), question.end(), std::ostream_iterator<int>(std::cout, ", ") );
@@ -417,15 +421,17 @@ void QueryEngine::eliminate_and_refine(std::vector<DatalogProgram>& A,
 
 
 	// generalize specific program that cannot cover  Q
-
+#ifdef LOG_REFINEMENT_LAYER_GRAPH
 	int x_id;
-
-	int L = layers.size();
+	const int L = layers.size();
+#endif
 
 	int refine_ct = 0;
 	for (DatalogProgram& x : B) {
 
+#ifdef LOG_REFINEMENT_LAYER_GRAPH
 		x_id = x.prog_id;
+#endif
 
 		if (test(x, pos_qs) && ! test(x,neg_qs) ) {
 			dps.push_back(std::move(x));
@@ -455,9 +461,12 @@ void QueryEngine::eliminate_and_refine(std::vector<DatalogProgram>& A,
 				std::vector<DatalogProgram> vs = dp_ptr->refineProgWithTarget(p,
 						specialize, Q[0]);
 				for (DatalogProgram& y : vs) {
-					edges[x_id].insert( std::make_pair( L, y.prog_id) );
 
-					if (test(y, pos_qs) && ! test(y,neg_qs)  ) {
+#ifdef LOG_REFINEMENT_LAYER_GRAPH
+					edges[x_id].insert(std::make_pair(L, y.prog_id));
+#endif
+
+					if (test(y, pos_qs) && !test(y, neg_qs)) {
 						dps.push_back(std::move(y));
 					} else {
 						Queue.push(std::move(y));
@@ -555,7 +564,9 @@ void QueryEngine::work() {
 		std::cout << "\n\n" << dp_ptr->str(x);
 	}
 
+#ifdef LOG_REFINEMENT_LAYER_GRAPH
 	draw_layer_graph(greens);
+#endif
 
 }
 
