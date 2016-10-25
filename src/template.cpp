@@ -330,6 +330,31 @@ std::vector< std::pair<Relation, std::vector<int>> > IClause::zip() const {
 	return res;
 }
 
+
+bool IClause::is_useless() const {
+	//check if the body contains the exact head relation and variables
+
+	const int sz = cl_body.size();
+	for(int i=0; i<sz; ++i) {
+		if(cl_body[i].pRel != cl_hd.pRel) {
+			continue;
+		}
+		const int arity = cl_hd.getArity();
+		bool eq = true;
+		for(int j = 0; j < arity; ++j) {
+			if( tc.hd.vdom[j] != tc.vbody[i].vdom[j] ){
+				eq = false;
+				break;
+			}
+		}
+		if(eq){
+			return true;
+		}
+	}
+
+	return false;
+}
+
 // Template Encoding for rule: path(x,y) :- path(x,z), edge(z, y).
 // 2
 // 0 2 0 1

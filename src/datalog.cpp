@@ -368,6 +368,10 @@ void DPManager::exploreCandidateRules() {
 			}
 
 			for(IClause& m : Ms) {
+				if(m.is_useless()) {
+					std::cout << "skip useless rule: " << m.toStr() << std::endl;
+					continue;
+				}
 				matchings.push_back( std::move(m) );
 			}
 		}
@@ -493,8 +497,8 @@ std::vector<DatalogProgram> DPManager::refineProgWithTarget(const DatalogProgram
 				}
 
 
-				if(! hash_and_record(dp) ){
-					// already existed, skip
+				if(! pass_filters(dp) ){
+					// fail to pass filters, skip
 					continue;
 				}
 
@@ -553,7 +557,7 @@ void DPManager::init_helper(bool general) {
 	const int sz = idbRules.size();
 	for(int i=0; i<sz; ++i) {
 		const IDBTR& idb = idbRules[i];
-		std::vector<std::set<int>>  vst = idb.chooseK(1, general);
+		std::vector<std::set<int>>  vst = idb.chooseK(2, general);
 
 		auto it = vst.begin();
 		while(it != vst.end()){
@@ -585,8 +589,7 @@ void DPManager::init_helper(bool general) {
 
 		dp.state = std::move(state);
 
-		if(! hash_and_record(dp) ){
-			// already existed, skip
+		if(! pass_filters(dp)) {
 			continue;
 		}
 
@@ -654,6 +657,68 @@ int DPManager::findIDBIndex(Relation r) const {
 	return -1;
 }
 
+bool DPManager::can_derive_something(const DatalogProgram& x) const {
+	std::map<int, std::vector< std::set<int> > > status;
+	std::set<int> tasks;
+	for(auto pr : x.state) {
+		const int idb_index = pr.first;
+		tasks.insert(idb_index);
+		status[idb_index ] = get_dependents(x, idb_index);
+	}
+
+	std::set<int> resolved;
+	int sz = tasks.size() + 1;
+	while(sz > tasks.size()) {
+		sz = tasks.size();
+
+		for(auto pr : status) {
+			const int idb_index = pr.first;
+			if(resolved.find(idb_index) != resolved.end()) {
+				continue;
+			}
+			for(auto st : pr.second){
+				bool suc = true;
+				for(int x : st) {
+					if(resolved.find(x) == resolved.end()) {
+						suc = false;
+					}
+				}
+				if(suc) {
+					resolved.insert(idb_index);
+					tasks.erase(idb_index);
+					break;
+				}
+			}
+		}
+	}
+
+	return tasks.size() == 0;
+}
+
+std::vector< std::set<int> > DPManager::get_dependents(const DatalogProgram& prog, int idb_index) const {
+	std::vector< std::set<int> > res;
+
+	auto it = prog.state.find(idb_index);
+	if(it == prog.state.end() || it->second.empty()) {
+		return res;
+	}
+	const IDBTR& idb_tr = idbRules[idb_index];
+	for(int r : it->second) {
+		std::set<int> st;
+
+		const IClause& cl = idb_tr.rules[r];
+		for(const TRelation& rel : cl.cl_body) {
+			if(rel.isIDB()) {
+				st.insert( findIDBIndex(rel.pRel) );
+			}
+		}
+
+		res.push_back(st);
+	}
+
+	return res;
+}
+
 bool DPManager::hash_and_record(const DatalogProgram& x){
 	std::string s = str(x);
 	long long h = str_hash( s );
@@ -672,6 +737,22 @@ bool DPManager::hash_and_record(const DatalogProgram& x){
 			// already existsed
 			return false;
 		}
+	}
+
+	return true;
+}
+
+
+bool DPManager::pass_filters(const DatalogProgram& dp) {
+	if(! can_derive_something(dp)) {
+		// if we cannot derive anything for some idb, skip
+		//std::cout << "ignore: fail to derive certain idb\n" << str(dp) << std::endl;
+		return false;
+	}
+
+	if(! hash_and_record(dp) ){
+		// already existed, skip
+		return false;
 	}
 
 	return true;

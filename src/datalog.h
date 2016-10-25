@@ -141,7 +141,15 @@ struct DPManager {
 
 	int findIDBIndex(Relation r) const;
 
+	bool pass_filters(const DatalogProgram&);
+
 	bool hash_and_record(const DatalogProgram&);
+
+	bool can_derive_something(const DatalogProgram&) const;
+
+	//bool too_deep(const DatalogProgram&) const;
+
+	std::vector< std::set<int> > get_dependents(const DatalogProgram& prog, int idb_index) const;
 
 	bool ask(std::vector<int>&);
 

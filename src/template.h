@@ -103,6 +103,10 @@ struct TRelation {
 	std::vector<std::string> getStrs() const;
 
 	bool possibleMatch(const TPredicate &) const;
+
+	bool isEDB() const { return pRel->PossibleTarget == false;}
+	bool isIDB() const { return pRel->PossibleTarget;}
+
 };
 
 
@@ -132,6 +136,9 @@ struct IClause {
 	void explain() const;
 
 	std::vector< std::pair<Relation, std::vector<int>> > zip() const;
+
+	// P0(v..) :- ..., P0(v..),...
+	bool is_useless() const;
 };
 
 struct TemplateManager {
