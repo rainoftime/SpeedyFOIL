@@ -7,6 +7,7 @@
 #include <iterator>
 #include <functional>
 #include <iostream>
+#include <fstream>
 #include <z3++.h>
 
 namespace SpeedyFOIL {
@@ -278,9 +279,13 @@ std::vector<int> QueryEngine::execute_one_round() {
 	vote_stats.clear();
 	warn_ct = 0;
 
+	std::vector<int> v;
+
 	int i=0;
 	auto it = dp_ptr->Gs.begin();
 	while(it != dp_ptr->Gs.end()) {
+
+		v.push_back( it->prog_id );
 
 		//std::cout <<"run program: \n";
 		//std::cout << dp_ptr->str(*it) << std::endl;
@@ -295,6 +300,8 @@ std::vector<int> QueryEngine::execute_one_round() {
 		//}
 		//break;
 	}
+
+	layers.push_back(std::move(v));
 
 	std::cout << "warn_ct = " << warn_ct << std::endl;
 	std::cout << "\ntuple stats: \n";
@@ -312,6 +319,9 @@ std::vector<int> QueryEngine::execute_one_round() {
 
 	std::cout <<"ideal=" << ideal << ", best=" << best << std::endl;
 
+	std::vector< std::pair<int, int> > order;
+	int index = 0;
+
 	std::set<int> votes;
 	std::vector<int> question;
 	for (auto pr : vote_stats) {
@@ -319,6 +329,9 @@ std::vector<int> QueryEngine::execute_one_round() {
 
 		int dis = pr.second - ideal;
 		if(dis < 0) dis =-dis;
+
+		order.push_back( std::make_pair(dis, index) );
+		++index;
 
 		if(dis < best) {
 
@@ -345,6 +358,25 @@ std::vector<int> QueryEngine::execute_one_round() {
 			return std::vector<int>();
 		}
 	}
+
+	/*
+	std::sort(order.begin(), order.end());
+	// find the first positive one
+	for(auto pr : order){
+		int index = pr.second;
+		auto it = vote_stats.begin();
+		while(index --) {
+			++it;
+		}
+		std::vector<int> v = it->first;
+
+		if(dp_ptr->ask(v )){
+			question = v;
+			break;
+		}
+
+	}
+	*/
 
 	std::cout << "Question: " ;
 	std::copy(question.begin(), question.end(), std::ostream_iterator<int>(std::cout, ", ") );
@@ -386,8 +418,15 @@ void QueryEngine::eliminate_and_refine(std::vector<DatalogProgram>& A,
 
 	// generalize specific program that cannot cover  Q
 
+	int x_id;
+
+	int L = layers.size();
+
 	int refine_ct = 0;
 	for (DatalogProgram& x : B) {
+
+		x_id = x.prog_id;
+
 		if (test(x, pos_qs) && ! test(x,neg_qs) ) {
 			dps.push_back(std::move(x));
 		} else {
@@ -409,11 +448,16 @@ void QueryEngine::eliminate_and_refine(std::vector<DatalogProgram>& A,
 				// here, we actually don't need to test if deleted or not
 				// as init/refineProg will never return a visited program
 
+				//std::cout << "\nrefine: \n" << dp_ptr->str(p) << std::endl;
+				//std::cout << "refined results: \n";
+
 				bool specialize = !positive;
 				std::vector<DatalogProgram> vs = dp_ptr->refineProgWithTarget(p,
 						specialize, Q[0]);
 				for (DatalogProgram& y : vs) {
-					if (test(x, pos_qs) && ! test(x,neg_qs)  ) {
+					edges[x_id].insert( std::make_pair( L, y.prog_id) );
+
+					if (test(y, pos_qs) && ! test(y,neg_qs)  ) {
 						dps.push_back(std::move(y));
 					} else {
 						Queue.push(std::move(y));
@@ -428,7 +472,8 @@ void QueryEngine::eliminate_and_refine(std::vector<DatalogProgram>& A,
 
 	B = std::move(dps);
 
-	std::cout << "removed_ct=" << remove_ct <<", refine_ct = " << refine_ct << std::endl;
+	std::cout << "removed_ct=" << remove_ct << ", refine_ct = " << refine_ct
+			<< ", Gs:" << dp_ptr->Gs.size() << std::endl;
 
 }
 
@@ -500,12 +545,115 @@ void QueryEngine::work() {
 		//break;
 	}
 
+	std::set<int> greens;
+
 	std::cout << "converged at round: " << round << std::endl;
 
 	std::cout << "remaining programs\n";
 	for(const DatalogProgram& x : dp_ptr->Gs) {
+		greens.insert(x.prog_id);
 		std::cout << "\n\n" << dp_ptr->str(x);
 	}
+
+	draw_layer_graph(greens);
+
+}
+
+void QueryEngine::draw_layer_graph(std::set<int>& greens){
+
+	std::string fpath = "layerG.dot";
+
+	std::ofstream fout(fpath);
+	fout << "digraph G {\n";
+
+
+	const int L = layers.size();
+
+	//for(std::vector<int>& v : layers){
+
+	for(int i=0; i < L; ++i) {
+		std::vector<int>& v = layers[i];
+
+		fout << "  subgraph {\n";
+		fout << "    rank = same;";
+		for(int x : v) {
+			fout <<"layer" << i << "_P" << x << "; ";
+		}
+		fout << "\n  }\n";
+	}
+
+
+	for(int i = 0; i < L; ++i) {
+		std::vector<int>& v = layers[i];
+		for(int x : v) {
+			std::set< std::pair<int,int> > st = edges[x];
+			std::set<int> st2;
+
+			if (i + 1 < L) {
+				for (int y : layers[i + 1]) {
+					if (x == y) {
+						st2.insert(y);
+					}
+				}
+			}
+
+
+			for(auto pr : st){
+				//std::cout <<"layer=" <<i <<", x=" << x << ", pr.first = " << pr.first  << ", pr.second = " << pr.second << std::endl;
+				if(i+1 == pr.first) {
+					//std::cout <<"x=" << x << ", pr.second = " << pr.second << std::endl;
+					st2.insert(pr.second);
+				}
+			}
+
+			if(st2.size()) {
+				fout <<" layer" << i << "_P" << x << " -> {";
+
+				for(int y : st2) {
+					fout << " layer" << (i+1) << "_P" << y <<" ";
+				}
+
+				fout << "  };\n";
+			}
+		}
+	}
+
+	/*
+	for (auto pr : edges) {
+		int x = pr.first;
+		if (pr.second.size()) {
+			fout << "P" << x << " -> {";
+			for (int y : pr.second) {
+				fout << "P" << y << " ";
+			}
+			fout << " };\n";
+		}
+	}*/
+
+	/*
+	for (int i = 0; i < sz; ++i) {
+		std::string s = templates[i].toStr();
+		int j = 0;
+		while(j < s.length()){
+			if(s[j] == '-') break;
+			++j;
+		}
+		fout << "v" << i << " [label=\"" << s.substr(j+1) << "\"];\n";
+	}
+    */
+
+	for(int i=0; i < L; ++i) {
+		std::vector<int>& v = layers[i];
+		for(int x : v){
+			if(greens.find(x) != greens.end())
+			fout <<"layer" << i << "_P" << x << " [style=filled color=\"yellow\"]; \n";
+		}
+	}
+
+
+	fout << "}\n";
+
+	fout.close();
 
 }
 

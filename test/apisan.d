@@ -94,7 +94,7 @@ notbad2,304,x_l303
 403,404
 501,502
 .
-opSucc(L,L)
+*opSucc(L,L)
 1,2
 1,3
 1,9
@@ -153,13 +153,6 @@ opSucc(L,L)
 7,NEQ,ptr_l4,ZERO
 301,GT,x_l303,ZERO
 401,EQ,ptr_l403,ZERO
-.
-Err(L)
-1
-4
-201
-403
-502
 .
 Ok(L)
 11

@@ -78,6 +78,12 @@ struct QueryEngine {
 
 	std::map<std::vector<int>, int> vote_stats;
 
+	//  data structure  for debugging
+	std::map<int, std::set< std::pair<int,int> >> edges;
+	std::vector< std::vector<int> > layers;
+	void draw_layer_graph(std::set<int>&);
+
+
 	z3::expr build_func_constr(z3::context& context,
 			std::map<int, z3::expr>& z3_vars,
 			std::pair<Relation, std::vector<int>>& pair);
