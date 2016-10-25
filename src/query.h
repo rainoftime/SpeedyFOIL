@@ -78,6 +78,8 @@ struct QueryEngine {
 
 	std::map<std::vector<int>, int> vote_stats;
 
+	std::set<int> fail_to_derive;
+
 	//  data structure  for debugging
 	std::map<int, std::set< std::pair<int,int> >> edges;
 	std::vector< std::vector<int> > layers;
@@ -94,8 +96,8 @@ struct QueryEngine {
 			std::set<std::pair<Relation, std::vector<int>>>&queries);
 
 	void execute(const DatalogProgram & dp);
-	void queryIDBs(std::set<std::pair<Relation, std::vector<int>>>& queries, FixedPoint& fp);
-	void parse_and_update(z3::expr&, int);
+	void queryIDBs(std::set<std::pair<Relation, std::vector<int>>>& queries, FixedPoint& fp, bool=false);
+	void parse_and_update(z3::expr&, int, bool=false);
 
 	bool test(const DatalogProgram&, z3::expr);
 

@@ -121,7 +121,7 @@ z3::expr QueryEngine::build_func_constr(z3::context& context,
 	return f(params);
 }
 
-void QueryEngine::parse_and_update(z3::expr& E, int idx) {
+void QueryEngine::parse_and_update(z3::expr& E, int idx, bool cancelVote) {
 	//std::cout << "parse_and_update, E=" << E << std::endl;
 	std::string app_name = E.decl().name().str();
 	if (app_name == "or") {
@@ -132,7 +132,12 @@ void QueryEngine::parse_and_update(z3::expr& E, int idx) {
 
 			// prepend idx
 			tp.insert(tp.begin(), idx);
-			++vote_stats[tp];
+			if(cancelVote){
+				--vote_stats[tp];
+			}
+			else{
+				++vote_stats[tp];
+			}
 
 			//std::cout <<"tp: ";
 			//std::copy(tp.begin(), tp.end(), std::ostream_iterator<int>(std::cout, ","));
@@ -141,14 +146,19 @@ void QueryEngine::parse_and_update(z3::expr& E, int idx) {
 	} else if (app_name == "and" || app_name == "=") {
 		std::vector<int> tp = extract_bv_values(E);
 		tp.insert(tp.begin(), idx);
-		++vote_stats[tp];
+		if(cancelVote){
+			--vote_stats[tp];
+		}
+		else{
+			++vote_stats[tp];
+		}
 	} else {
 		std::cerr << "unknown application name: " << app_name << std::endl;
 	}
 }
 
 void QueryEngine::queryIDBs(
-		std::set<std::pair<Relation, std::vector<int>>>& queries, FixedPoint& fp) {
+		std::set<std::pair<Relation, std::vector<int>>>& queries, FixedPoint& fp, bool cancelVote) {
 	z3::context& context = cm_ptr->C;
 	z3::sort bv_sort = context.bv_sort(cm_ptr->MaxBits);
 
@@ -185,7 +195,9 @@ void QueryEngine::queryIDBs(
 
 		}
 		else {
-			++warn_ct;
+			if(!cancelVote){
+				++warn_ct;
+			}
 		}
 	}
 
@@ -245,7 +257,12 @@ FixedPoint QueryEngine::prepare(const DatalogProgram & dp,
 void QueryEngine::execute(const DatalogProgram& dp) {
 	std::set<std::pair<Relation, std::vector<int>>> queries;
 	FixedPoint fp = prepare(dp, queries);
+	const int before = warn_ct;
 	queryIDBs(queries, fp);
+	const int after = warn_ct;
+	if(before != after) {
+		fail_to_derive.insert( dp.prog_id );
+	}
 }
 
 z3::expr QueryEngine::convert_question(std::vector<int>& Q){
@@ -278,6 +295,7 @@ bool QueryEngine::test(const DatalogProgram& dp, z3::expr Q) {
 
 std::vector<int> QueryEngine::execute_one_round() {
 
+	fail_to_derive.clear();
 	vote_stats.clear();
 	warn_ct = 0;
 
@@ -397,10 +415,12 @@ void QueryEngine::eliminate_and_refine(std::vector<DatalogProgram>& A,
 	std::vector<DatalogProgram> dps;
 	int remove_ct = 0;
 
+
 	//std::cout << "A.size() = " << A.size() <<
 
 	for (DatalogProgram& x : A) {
-		if (test(x, pos_qs) && ! test(x,neg_qs) ) {
+		if (fail_to_derive.find(x.prog_id) == fail_to_derive.end()
+				&& test(x, pos_qs) && !test(x, neg_qs)) {
 			dps.push_back(std::move(x));
 		} else {
 			++remove_ct;
