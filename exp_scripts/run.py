@@ -9,6 +9,7 @@ import os
 
 import multiprocessing
 
+tasks = [polysite, downcast]
 
 usage_exit("path_to_foil", "test_data_dir", "log_dir")
 
@@ -31,7 +32,7 @@ def worker(cmd):
 
 jobs = []
 
-for name in benchmarks:
+for name in tasks:
     bench = benchmarks[name]
 
     tmpl = os.path.join(data_dir, TMPL_FILE)
