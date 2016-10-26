@@ -609,8 +609,8 @@ void DPManager::initGS() {
 	init_helper(true);
 	std::cout << "Gs.size = " << Gs.size() << std::endl;
 
-	//init_helper(false);
-	//std::cout << "Ss.size = " << Ss.size() << std::endl;
+	init_helper(false);
+	std::cout << "Ss.size = " << Ss.size() << std::endl;
 
 	//execute( *Gs.begin() );
 }

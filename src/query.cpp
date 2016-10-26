@@ -298,39 +298,16 @@ bool QueryEngine::test(const DatalogProgram& dp, z3::expr Q) {
 	return fp.query( Q );
 }
 
-std::vector<int> QueryEngine::execute_one_round() {
-
-	fail_to_derive.clear();
-	vote_stats.clear();
-	warn_ct = 0;
-
-#ifdef LOG_REFINEMENT_LAYER_GRAPH
-	std::vector<int> v;
-#endif
-
-	auto it = dp_ptr->Gs.begin();
-	while(it != dp_ptr->Gs.end()) {
-
-#ifdef LOG_REFINEMENT_LAYER_GRAPH
-		v.push_back( it->prog_id );
-#endif
-		//std::cout <<"run program: \n";
-		//std::cout << dp_ptr->str(*it) << std::endl;
-
+void QueryEngine::execute_one_round_helper(std::vector<DatalogProgram>& progs) {
+	auto it = progs.begin();
+	while(it != progs.end()) {
 		execute(*it);
 		++it;
-
-		//if(i%2 == 0) {
-		//	std::cout << "i = " << i << ", warn_ct = " << warn_ct << std::endl;
-		//	break;
-		//}
-		//break;
 	}
-
 
 	int cancel_ct = 0;
 	std::vector<DatalogProgram> dps;
-	for(DatalogProgram& x : dp_ptr->Gs) {
+	for(DatalogProgram& x :progs) {
 		if(fail_to_derive.find(x.prog_id) == fail_to_derive.end()) {
 			dps.push_back( std::move(x) );
 		}
@@ -339,18 +316,28 @@ std::vector<int> QueryEngine::execute_one_round() {
 		}
 	}
 
-	dp_ptr->Gs =std::move(dps);
+	progs =std::move(dps);
 
-	std::cout << "cancel votes for " << cancel_ct << " programs, now Gs:" << dp_ptr->Gs.size() << std::endl;
-
-
-
+	std::cout << "cancel votes for " << cancel_ct << " programs, now size:" << progs.size() << std::endl;
+}
 
 
+std::vector<int> QueryEngine::execute_one_round() {
+
+	fail_to_derive.clear();
+	vote_stats.clear();
+	warn_ct = 0;
 
 #ifdef LOG_REFINEMENT_LAYER_GRAPH
+	std::vector<int> v;
+		v.push_back( it->prog_id );
 	layers.push_back(std::move(v));
 #endif
+
+
+	execute_one_round_helper(dp_ptr->Gs);
+	execute_one_round_helper(dp_ptr->Ss);
+
 
 	std::cout << "warn_ct = " << warn_ct << std::endl;
 	std::cout << "\ntuple stats: \n";
@@ -383,13 +370,12 @@ std::vector<int> QueryEngine::execute_one_round() {
 
 		if(dis < best) {
 
-			std::cout << "update best: dis=" << dis << ", best=" << best << std::endl;
+			//std::cout << "update best: dis=" << dis << ", best=" << best << std::endl;
 			question = pr.first;
 			best = dis;
-			std::cout << "Question becomes: " ;
-			std::copy(question.begin(), question.end(), std::ostream_iterator<int>(std::cout, ", ") );
-			std::cout << std::endl;
-
+			//std::cout << "Question becomes: " ;
+			//std::copy(question.begin(), question.end(), std::ostream_iterator<int>(std::cout, ", ") );
+			//std::cout << std::endl;
 
 		}
 	}
@@ -426,9 +412,9 @@ std::vector<int> QueryEngine::execute_one_round() {
 	}*/
 
 
-	std::cout << "Question: " ;
-	std::copy(question.begin(), question.end(), std::ostream_iterator<int>(std::cout, ", ") );
-	std::cout << std::endl;
+	//std::cout << "Question: " ;
+	//std::copy(question.begin(), question.end(), std::ostream_iterator<int>(std::cout, ", ") );
+	//std::cout << std::endl;
 
 	return question;
 }
@@ -560,9 +546,12 @@ void QueryEngine::work() {
 
 		bool positive = dp_ptr->ask(Q);
 
-		if (positive) {
 
-			std::cout << "positive answer for Question\n";
+		std::cout << ( positive ? "positive" : "negative" ) << " answer for Question\n";
+		std::copy(Q.begin(), Q.end(), std::ostream_iterator<int>(std::cout, ", ") );
+		std::cout << std::endl;
+
+		if (positive) {
 
 			z3::expr q = convert_question(Q);
 			and_pos_vec.push_back(q);
@@ -582,8 +571,6 @@ void QueryEngine::work() {
 					<< std::endl;
 
 		} else {
-
-			std::cout << "negative answer for Question\n";
 
 			z3::expr q = convert_question(Q);
 			or_neg_vec.push_back(q);

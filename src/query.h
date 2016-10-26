@@ -90,6 +90,7 @@ struct QueryEngine {
 			std::map<int, z3::expr>& z3_vars,
 			std::pair<Relation, std::vector<int>>& pair);
 
+	void execute_one_round_helper(std::vector<DatalogProgram>&);
 	std::vector<int> execute_one_round();
 
 	FixedPoint prepare(const DatalogProgram & dp,
