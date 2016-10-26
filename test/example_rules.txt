@@ -1,0 +1,9 @@
+
+# example for rules
+
+A(x,y) :- B(y,z), C(z,z).
+
+# this is a comment
+B(x,y) :- D(z,z), C(y,z).
+
+C(z,y) :- D(y,x), E(x,x).
