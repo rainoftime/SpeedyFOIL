@@ -8,6 +8,9 @@
 #include <functional>
 #include <iostream>
 #include <fstream>
+#include <ctime>
+#include <chrono>
+
 #include <z3++.h>
 
 //#define LOG_REFINEMENT_LAYER_GRAPH
@@ -540,11 +543,20 @@ void QueryEngine::work() {
 	while (true) {
 		++round;
 
+		std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
+
 		std::vector<int> Q = execute_one_round();
+
+	    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+	    std::cout << "Round " << round << " execution takes "
+	              << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()
+	              << " ms.\n";
 
 		if(Q.size() == 0) {
 			break;
 		}
+
+		std::chrono::steady_clock::time_point before_refine = std::chrono::steady_clock::now();
 
 		bool positive = dp_ptr->ask(Q);
 
@@ -592,6 +604,16 @@ void QueryEngine::work() {
 					<< std::endl;
 
 		}
+
+		std::chrono::steady_clock::time_point after_refine = std::chrono::steady_clock::now();
+
+	    std::cout << "Round " << round << " refinement takes "
+	              << std::chrono::duration_cast<std::chrono::milliseconds>(after_refine - before_refine).count()
+	              << " ms.\n";
+
+	    std::cout << "Round " << round << " overall takes "
+	              << std::chrono::duration_cast<std::chrono::milliseconds>(after_refine - start).count()
+	              << " ms.\n";
 
 		//break;
 	}

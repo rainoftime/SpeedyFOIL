@@ -557,7 +557,7 @@ void DPManager::init_helper(bool general) {
 	const int sz = idbRules.size();
 	for(int i=0; i<sz; ++i) {
 		const IDBTR& idb = idbRules[i];
-		std::vector<std::set<int>>  vst = idb.chooseK(4, general);
+		std::vector<std::set<int>>  vst = idb.chooseK(K, general);
 
 		auto it = vst.begin();
 		while(it != vst.end()){

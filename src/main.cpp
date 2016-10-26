@@ -125,7 +125,7 @@ int main(int Argc, char *Argv[])
 
 	/*  Process options  */
 
-	while ((o = getopt(Argc, Argv, "pnNus:a:f:g:V:d:A:w:l:t:m:v:y:T:")) != EOF) {
+	while ((o = getopt(Argc, Argv, "pnNus:a:f:g:V:d:A:w:l:t:m:v:y:T:K:")) != EOF) {
 		if (FirstTime) {
 			printf("\n    Options:\n");
 			FirstTime = false;
@@ -226,6 +226,10 @@ int main(int Argc, char *Argv[])
 			std::cout << "Number of templates: " << M.tm.templates.size() << std::endl;
 			//M.tm.showTemplates();
 			//M.tm.buildPartialOrder();
+			break;
+
+		case 'K':
+			DP.K = atoi(optarg);
 			break;
 
 		case '?':
