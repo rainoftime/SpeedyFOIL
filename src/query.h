@@ -70,6 +70,10 @@ struct QueryEngine {
 
 	int warn_ct = 0;
 
+	bool enableG = false;
+	bool enableS = false;
+
+
 	DPManager* dp_ptr;
 	ContextManager* cm_ptr;
 

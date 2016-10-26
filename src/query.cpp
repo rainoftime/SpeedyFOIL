@@ -335,24 +335,29 @@ std::vector<int> QueryEngine::execute_one_round() {
 #endif
 
 
-	execute_one_round_helper(dp_ptr->Gs);
-	execute_one_round_helper(dp_ptr->Ss);
-
-
-	std::cout << "warn_ct = " << warn_ct << std::endl;
-	std::cout << "\ntuple stats: \n";
-	for (auto pr : vote_stats) {
-		std::cout << pr.second << " votes for ";
-		for (int x : pr.first)
-			std::cout << x << " ";
-		std::cout << std::endl;
+	if (enableG) {
+		execute_one_round_helper(dp_ptr->Gs);
+	}
+	if (enableS) {
+		execute_one_round_helper(dp_ptr->Ss);
 	}
 
 
-	const int ideal = dp_ptr->Gs.size()  / 2;
+	std::cout << "warn_ct = " << warn_ct << std::endl;
+	//std::cout << "\ntuple stats: \n";
+	//for (auto pr : vote_stats) {
+	//	std::cout << pr.second << " votes for ";
+	//	for (int x : pr.first)
+	//		std::cout << x << " ";
+	//	std::cout << std::endl;
+	//}
+
+
+	const int ideal = (dp_ptr->Gs.size() + dp_ptr->Ss.size())  / 2;
 	int best = 1<<30;
 
-	std::cout <<"ideal=" << ideal << ", best=" << best << std::endl;
+	std::cout <<"ideal=" << ideal << std::endl;
+	//std::cout <<"ideal=" << ideal << ", best=" << best << std::endl;
 
 	std::vector< std::pair<int, int> > order;
 	int index = 0;

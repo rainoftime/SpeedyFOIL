@@ -125,13 +125,19 @@ int main(int Argc, char *Argv[])
 
 	/*  Process options  */
 
-	while ((o = getopt(Argc, Argv, "pnNus:a:f:g:V:d:A:w:l:t:m:v:y:T:K:")) != EOF) {
+	while ((o = getopt(Argc, Argv, "GSpnNus:a:f:g:V:d:A:w:l:t:m:v:y:T:K:")) != EOF) {
 		if (FirstTime) {
 			printf("\n    Options:\n");
 			FirstTime = false;
 		}
 
 		switch (o) {
+		case 'G':
+			QE.enableG = true;
+			break;
+		case 'S':
+			QE.enableS = true;
+			break;
 		case 'n':
 			NEGLITERALS = NEGEQUALS = false;
 			printf("\tno negated literals\n");
@@ -236,6 +242,19 @@ int main(int Argc, char *Argv[])
 			printf("unrecognised option\n");
 			exit(1);
 		}
+	}
+
+	if(QE.enableG) {
+		std::cout << "Top-down is enabled\n";
+	}
+
+	if(QE.enableS) {
+		std::cout << "Bottom-up is enabled\n";
+	}
+
+	if(QE.enableG == false && QE.enableS == false) {
+		std::cerr << "Should enable at least one of: Top-down(G), Bottom-up(S)" << std::endl;
+		return 0;
 	}
 
 	/*  Set up predefined relations.
