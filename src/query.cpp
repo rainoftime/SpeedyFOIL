@@ -612,11 +612,18 @@ void QueryEngine::work() {
 
 	std::cout << "converged at round: " << round << std::endl;
 
-	std::cout << "remaining programs\n";
+	std::cout << "remaining general programs\n";
 	for(const DatalogProgram& x : dp_ptr->Gs) {
 		greens.insert(x.prog_id);
 		std::cout << "\n\n" << dp_ptr->str(x);
 	}
+
+	std::cout << "remaining specific programs\n";
+	for(const DatalogProgram& x : dp_ptr->Ss) {
+		greens.insert(x.prog_id);
+		std::cout << "\n\n" << dp_ptr->str(x);
+	}
+
 
 #ifdef LOG_REFINEMENT_LAYER_GRAPH
 	draw_layer_graph(greens);
