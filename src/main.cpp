@@ -125,7 +125,7 @@ int main(int Argc, char *Argv[])
 
 	/*  Process options  */
 
-	while ((o = getopt(Argc, Argv, "GSpnNus:a:f:g:V:d:A:w:l:t:m:v:y:T:K:")) != EOF) {
+	while ((o = getopt(Argc, Argv, "GSpnNus:a:f:g:V:d:A:w:l:t:m:v:y:T:K:B:")) != EOF) {
 		if (FirstTime) {
 			printf("\n    Options:\n");
 			FirstTime = false;
@@ -236,6 +236,9 @@ int main(int Argc, char *Argv[])
 
 		case 'K':
 			DP.K = atoi(optarg);
+			break;
+
+		case 'B':
 			break;
 
 		case '?':

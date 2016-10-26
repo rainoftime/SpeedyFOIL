@@ -24,7 +24,7 @@ def worker(cmd):
     if status != 0:
         print '>>>>>> execution failed, status=', status, ', cmd=', Yellow(cmd)
     else:
-        print '>>>>>> ', Green('Done')
+        print '>>>>>> ', Green('Done: ' + cmd)
 
 
 
@@ -39,7 +39,7 @@ for name in tasks:
 
     check_exist_err(fin)
 
-    cmd =  "%s %s -K %d  -T %s < %s > %s" % (foil, MODE, bench[K], tmpl, fin, fout )
+    cmd =  "%s -B %s %s -K %d  -T %s < %s > %s" % (foil, name, MODE, bench[K], tmpl, fin, fout )
     jb = multiprocessing.Process(target = worker, args=(cmd,) )
     jobs.append(jb)
 
