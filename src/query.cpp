@@ -350,7 +350,7 @@ std::vector<int> QueryEngine::execute_one_round() {
 
 
 	const int ideal = dp_ptr->Gs.size()  / 2;
-	int best = ideal;
+	int best = 1<<30;
 
 	std::cout <<"ideal=" << ideal << ", best=" << best << std::endl;
 
