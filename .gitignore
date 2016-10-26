@@ -12,12 +12,16 @@ foil
 *.i~
 *.h~
 *.c~
+*.py~
+*.dot
+
 
 # Compiled Object files
 *.slo
 *.lo
 *.o
 *.obj
+*.pyc
 
 # Precompiled Headers
 *.gch
