@@ -350,7 +350,8 @@ std::vector<int> QueryEngine::execute_one_round() {
 
 
 
-	const int ideal = (dp_ptr->Gs.size() + dp_ptr->Ss.size())  / 2;
+	const int total_votes = dp_ptr->Gs.size() + dp_ptr->Ss.size();
+	const int ideal = total_votes  / 2;
 	int best = 1<<30;
 
 	std::cout <<"ideal=" << ideal << std::endl;
@@ -386,7 +387,7 @@ std::vector<int> QueryEngine::execute_one_round() {
 	std::cout << "best distance : " << best << std::endl;
 
 	if(votes.size() == 1) {
-		if( *votes.begin() == dp_ptr->Gs.size() ) {
+		if( *votes.begin() == total_votes ) {
 
 			std::cout << "only one size of vote: " << *votes.begin() << ", so converged." << std::endl;
 
