@@ -133,10 +133,10 @@ int main(int Argc, char *Argv[])
 
 		switch (o) {
 		case 'G':
-			QE.enableG = true;
+			DP.enableG = true;
 			break;
 		case 'S':
-			QE.enableS = true;
+			DP.enableS = true;
 			break;
 		case 'n':
 			NEGLITERALS = NEGEQUALS = false;
@@ -244,15 +244,15 @@ int main(int Argc, char *Argv[])
 		}
 	}
 
-	if(QE.enableG) {
+	if(DP.enableG) {
 		std::cout << "Top-down is enabled\n";
 	}
 
-	if(QE.enableS) {
+	if(DP.enableS) {
 		std::cout << "Bottom-up is enabled\n";
 	}
 
-	if(QE.enableG == false && QE.enableS == false) {
+	if(DP.enableG == false && DP.enableS == false) {
 		std::cerr << "Should enable at least one of: Top-down(G), Bottom-up(S)" << std::endl;
 		return 0;
 	}

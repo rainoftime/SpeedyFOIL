@@ -606,11 +606,15 @@ void DPManager::init_helper(bool general) {
 }
 
 void DPManager::initGS() {
-	init_helper(true);
-	std::cout << "Gs.size = " << Gs.size() << std::endl;
+	if(enableG){
+		init_helper(true);
+		std::cout << "Gs.size = " << Gs.size() << std::endl;
+	}
 
-	init_helper(false);
-	std::cout << "Ss.size = " << Ss.size() << std::endl;
+	if(enableS) {
+		init_helper(false);
+		std::cout << "Ss.size = " << Ss.size() << std::endl;
+	}
 
 	//execute( *Gs.begin() );
 }

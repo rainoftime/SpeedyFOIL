@@ -107,6 +107,8 @@ struct IDBValue {
 
 struct DPManager {
 	int K = 1;
+	bool enableG = false;
+	bool enableS = false;
 
 	const Matching& M;
 	std::vector<IDBTR> idbRules;

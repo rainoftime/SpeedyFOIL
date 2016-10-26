@@ -318,7 +318,7 @@ void QueryEngine::execute_one_round_helper(std::vector<DatalogProgram>& progs) {
 
 	progs =std::move(dps);
 
-	std::cout << "cancel votes for " << cancel_ct << " programs, now size:" << progs.size() << std::endl;
+	std::cout << "cancel votes for " << cancel_ct << " programs, now size: " << progs.size() << std::endl;
 }
 
 
@@ -335,22 +335,19 @@ std::vector<int> QueryEngine::execute_one_round() {
 #endif
 
 
-	if (enableG) {
-		execute_one_round_helper(dp_ptr->Gs);
-	}
-	if (enableS) {
-		execute_one_round_helper(dp_ptr->Ss);
-	}
+	execute_one_round_helper(dp_ptr->Gs);
+	execute_one_round_helper(dp_ptr->Ss);
 
 
 	std::cout << "warn_ct = " << warn_ct << std::endl;
-	//std::cout << "\ntuple stats: \n";
-	//for (auto pr : vote_stats) {
-	//	std::cout << pr.second << " votes for ";
-	//	for (int x : pr.first)
-	//		std::cout << x << " ";
-	//	std::cout << std::endl;
-	//}
+	std::cout << "\ntuple stats: \n";
+	for (auto pr : vote_stats) {
+		std::cout << pr.second << " votes for ";
+		for (int x : pr.first)
+			std::cout << x << " ";
+		std::cout << std::endl;
+	}
+
 
 
 	const int ideal = (dp_ptr->Gs.size() + dp_ptr->Ss.size())  / 2;
