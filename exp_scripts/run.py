@@ -9,8 +9,6 @@ import os
 
 import multiprocessing
 
-tasks = [polysite, downcast]
-
 usage_exit("path_to_foil", "test_data_dir", "log_dir")
 
 for f in sys.argv[1:]:
@@ -21,8 +19,8 @@ foil, data_dir, log_dir = sys.argv[1:]
 
 def worker(cmd):
     print '>>>> cmd: ', Green(cmd)
-    status = 0
-    #status = os.system(cmd)
+    #status = 0
+    status = os.system(cmd)
     if status != 0:
         print '>>>>>> execution failed, status=', status, ', cmd=', Yellow(cmd)
     else:

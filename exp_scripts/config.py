@@ -1,4 +1,4 @@
-MODE = "-GS"
+MODE = "-G"
 
 TMPL_FILE = "tmp_alps.txt"
 DFILE =  "dfile"
@@ -14,6 +14,7 @@ animals = "animals"
 apisan = "apisan"
 andersen = "andersen"
 
+tasks = [downcast, polysite, path, modref, ancestor, abduce, animals, apisan, andersen ]
 
 benchmarks = {
     downcast : { K : 1, DFILE : "downcast.d", },
