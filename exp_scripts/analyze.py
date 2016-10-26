@@ -78,6 +78,21 @@ for name in log_stats:
 
 for name in log_stats:
     dt = log_stats[ name ]
-    for k in dt:
-        print k, dt[k]
+    res = []
+
+    vis_progs = dt[ GS_SIZE ] + sum( dt[REFINE_CT] )
+    if SS_SIZE in dt:
+        vis_progs += dt[ SS_SIZE ]
+
+    questions = len( dt[OVERALL_TM] )
+    avg_time = sum( dt[OVERALL_TM] ) / questions
+    out_progs = dt[ PROG_CT ]
+
+    res.append( name )
+    res.append( questions )
+    res.append( avg_time/1000.0 )
+    res.append( vis_progs)
+    res.append( out_progs )
+
+    print "\t".join( [ str(x) for x in res ] )
 
