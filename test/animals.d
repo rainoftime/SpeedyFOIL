@@ -20,8 +20,8 @@ dog,hair
 dolphin,none
 platypus,hair
 bat,hair
-trout,scales
-herring,scales
+trout,none
+herring,none
 shark,none
 eel,none
 lizard,scales
