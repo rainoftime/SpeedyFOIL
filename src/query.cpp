@@ -342,10 +342,8 @@ std::vector<int> QueryEngine::execute_one_round() {
 	std::cout << "warn_ct = " << warn_ct << std::endl;
 	std::cout << "\ntuple stats: \n";
 	for (auto pr : vote_stats) {
-		std::cout << pr.second << " votes for ";
-		for (int x : pr.first)
-			std::cout << x << " ";
-		std::cout << std::endl;
+		std::cout << pr.second << " votes for "
+				<< dp_ptr->nice_display(pr.first) << std::endl;
 	}
 
 
@@ -550,9 +548,12 @@ void QueryEngine::work() {
 		bool positive = dp_ptr->ask(Q);
 
 
-		std::cout << ( positive ? "positive" : "negative" ) << " answer for Question\n";
-		std::copy(Q.begin(), Q.end(), std::ostream_iterator<int>(std::cout, ", ") );
-		std::cout << std::endl;
+		std::cout << (positive ? "positive" : "negative")
+				<< " answer for Question: " << dp_ptr->nice_display(Q)
+				<< std::endl;
+
+		//std::copy(Q.begin(), Q.end(), std::ostream_iterator<int>(std::cout, ", ") );
+		//std::cout << std::endl;
 
 		if (positive) {
 

@@ -1,6 +1,7 @@
 
 #include "datalog.h"
 #include "template.h"
+#include "extern.h"
 
 #include <map>
 #include <vector>
@@ -793,6 +794,30 @@ void DPManager::test_specialize() {
 		}
 	}
 
+}
+
+std::string DPManager::nice_display(const std::vector<int>& Q) const {
+	std::stringstream ss;
+
+	const int  idb_index = Q[0];
+	const IDBTR& idb = idbRules[idb_index];
+	const int arity = idb.rel.getArity();
+	if(arity == Q.size() - 1){
+		ss << idb.rel.getRelName() << "(";
+		for(int i=0;i< arity; ++i) {
+			if (i) {
+				ss << ",";
+			}
+			ss << ConstName[Q[i + 1]];
+		}
+		ss << ")";
+	}
+	else{
+		ss << "arity doest not match: " << idb.rel.getRelNameWithTypes()
+				<< ", actual arity=" << Q.size() - 1;
+	}
+
+	return ss.str();
 }
 
 

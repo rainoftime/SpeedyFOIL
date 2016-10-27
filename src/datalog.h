@@ -158,6 +158,8 @@ struct DPManager {
 	bool ask(std::vector<int>&);
 
 	void test_specialize();
+
+	std::string nice_display(const std::vector<int>& Q)const;
 };
 
 } // namespace SpeedyFOIL
