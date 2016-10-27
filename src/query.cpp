@@ -10,6 +10,7 @@
 #include <fstream>
 #include <ctime>
 #include <chrono>
+#include <cstdlib>
 
 #include <z3++.h>
 
@@ -263,7 +264,7 @@ void QueryEngine::execute(const DatalogProgram& dp) {
 	const int before = warn_ct;
 	queryIDBs(queries, fp);
 	const int after = warn_ct;
-	if(before != after) {
+	if(before != after && !random_mode ) {
 		fail_to_derive.insert( dp.prog_id );
 		//std::cout << "will cancel vote for program: \n" << dp_ptr->str(dp) << std::endl;
 		queryIDBs(queries, fp, true);
@@ -296,6 +297,55 @@ bool QueryEngine::test(const DatalogProgram& dp, z3::expr Q) {
 	std::set<std::pair<Relation, std::vector<int>>> queries;
 	FixedPoint fp = prepare(dp, queries);
 	return fp.query( Q );
+}
+
+bool QueryEngine::test_converge() {
+	vote_stats.clear();
+	int ct = 0;
+	std::vector<const DatalogProgram*> vp;
+	for(const DatalogProgram& p : dp_ptr->Ss) {
+		vp.push_back( &p);
+	}
+	for(const DatalogProgram& p : dp_ptr->Gs) {
+		vp.push_back( &p);
+	}
+
+	for(const DatalogProgram* p : vp) {
+		++ct;
+		execute(*p);
+
+		for(auto pr : vote_stats) {
+			if(pr.second != ct){
+				return false;
+			}
+		}
+	}
+
+	return true;
+}
+std::vector<int> QueryEngine::random_pick(){
+	std::vector<int> res;
+
+	// test converge
+	if( test_converge() ) {
+		return res;
+	}
+
+	while (res.size() == 0) {
+		const int idb_index = std::rand() % dp_ptr->idbRules.size();
+		const IDBTR& idb = dp_ptr->idbRules[idb_index];
+		const int S = idb.rel.getSpace();
+		const int K = std::rand() % S;
+
+		auto pr = std::make_pair(idb_index, K);
+		if (random_picked.find(pr) == random_picked.end()) {
+			random_picked.insert(pr);
+			res = idb.rel.getKthTuple(K);
+			res.insert(res.begin(), idb_index);
+		}
+	}
+
+	return res;
 }
 
 void QueryEngine::execute_one_round_helper(std::vector<DatalogProgram>& progs) {
@@ -532,7 +582,7 @@ void QueryEngine::work() {
 
 		std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
 
-		std::vector<int> Q = execute_one_round();
+		std::vector<int> Q = random_mode ? random_pick() : execute_one_round();
 
 	    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 	    std::cout << "Round " << round << " execution takes "

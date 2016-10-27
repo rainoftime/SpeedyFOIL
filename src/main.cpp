@@ -125,13 +125,17 @@ int main(int Argc, char *Argv[])
 
 	/*  Process options  */
 
-	while ((o = getopt(Argc, Argv, "GSpnNus:a:f:g:V:d:A:w:l:t:m:v:y:T:K:B:")) != EOF) {
+	while ((o = getopt(Argc, Argv, "GSRpnNus:a:f:g:V:d:A:w:l:t:m:v:y:T:K:B:")) != EOF) {
 		if (FirstTime) {
 			printf("\n    Options:\n");
 			FirstTime = false;
 		}
 
 		switch (o) {
+		case 'R':
+			QE.random_mode = true;
+			break;
+
 		case 'G':
 			DP.enableG = true;
 			break;
@@ -253,6 +257,10 @@ int main(int Argc, char *Argv[])
 
 	if(DP.enableS) {
 		std::cout << "Bottom-up is enabled\n";
+	}
+
+	if(QE.random_mode) {
+		std::cout << "Using Random selection\n";
 	}
 
 	if(DP.enableG == false && DP.enableS == false) {

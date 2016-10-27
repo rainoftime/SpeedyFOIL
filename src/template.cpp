@@ -591,6 +591,34 @@ bool TRelation::possibleMatch(const TPredicate & pr) const {
 	return getArity() == pr.arity;
 }
 
+int TRelation::getSpace() const {
+	const int arity = getArity();
+	int res = 1;
+
+	for(int i = 0; i < arity; ++i) {
+		TypeInfo t = getType(i);
+		res *= t->NValues;
+	}
+
+	return res;
+}
+std::vector<int> TRelation::getKthTuple(int K) const {
+	std::vector<int> v;
+	const int arity = getArity();
+
+	for(int i=0; i < arity; ++i){
+		TypeInfo t = getType(i);
+		const int D = t->NValues;
+		const int j = K % D;
+
+		v.push_back(t->Value[j]);
+		K /= D;
+	}
+
+	return v;
+}
+
+
 
 void RelationManager::loadRelations(Relation* reln, int n) {
 	for(int i=0; i<n; ++i) {

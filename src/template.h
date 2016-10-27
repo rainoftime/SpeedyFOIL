@@ -102,6 +102,9 @@ struct TRelation {
 
 	std::vector<std::string> getStrs() const;
 
+	int getSpace() const;
+	std::vector<int> getKthTuple(int K) const;
+
 	bool possibleMatch(const TPredicate &) const;
 
 	bool isEDB() const { return pRel->PossibleTarget == false;}

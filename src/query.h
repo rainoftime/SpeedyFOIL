@@ -85,6 +85,10 @@ struct QueryEngine {
 	std::vector< std::vector<int> > layers;
 	void draw_layer_graph(std::set<int>&);
 
+	// random selection
+	std::set< std::pair<int,int> > random_picked;
+	bool random_mode = false;
+
 
 	z3::expr build_func_constr(z3::context& context,
 			std::map<int, z3::expr>& z3_vars,
@@ -92,6 +96,8 @@ struct QueryEngine {
 
 	void execute_one_round_helper(std::vector<DatalogProgram>&);
 	std::vector<int> execute_one_round();
+	std::vector<int> random_pick();
+	bool test_converge();
 
 	FixedPoint prepare(const DatalogProgram & dp,
 			std::set<std::pair<Relation, std::vector<int>>>&queries);
