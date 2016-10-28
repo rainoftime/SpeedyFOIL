@@ -161,42 +161,48 @@ void QueryEngine::parse_and_update(z3::expr& E, int idx, bool cancelVote) {
 	}
 }
 
-void QueryEngine::queryIDBs(
-		std::set<std::pair<Relation, std::vector<int>>>& queries, FixedPoint& fp, bool cancelVote) {
+
+z3::expr QueryEngine::construct_query(const std::pair<Relation, std::vector<int>>& Q){
 	z3::context& context = cm_ptr->C;
 	z3::sort bv_sort = context.bv_sort(cm_ptr->MaxBits);
 
+	//std::cout << "Query: Relatio=" << Q.first->Name << " ";
+	//std::copy (Q.second.begin(), Q.second.end(), std::ostream_iterator<int>(std::cout, ","));
+	//std::cout << std::endl;
+
+	Relation rel = Q.first;
+	z3::func_decl f = cm_ptr->funcMap.find(rel)->second;
+
+	std::set<int> vars(Q.second.begin(), Q.second.end());
+
+	z3::expr_vector ex_vs(context);
+	std::map<int, z3::expr> z3_vars;
+	for (int x : vars) {
+		z3::expr vx = context.constant(str(x), bv_sort);
+		z3_vars.insert( std::make_pair(x, vx) );
+		ex_vs.push_back(vx);
+	}
+
+	z3::expr_vector params(context);
+	for (int x : Q.second) {
+		auto it = z3_vars.find(x);
+		params.push_back( it->second );
+	}
+
+	return z3::exists(ex_vs, f(params));
+}
+
+void QueryEngine::queryIDBs(
+		std::set<std::pair<Relation, std::vector<int>>>& queries, FixedPoint& fp, bool cancelVote) {
+
 	// Query
 	for (auto Q : queries) {
-
-		//std::cout << "Query: Relatio=" << Q.first->Name << " ";
-		//std::copy (Q.second.begin(), Q.second.end(), std::ostream_iterator<int>(std::cout, ","));
-		//std::cout << std::endl;
-
 		Relation rel = Q.first;
-		z3::func_decl f = cm_ptr->funcMap.find(rel)->second;
 
-		std::set<int> vars(Q.second.begin(), Q.second.end());
-
-		z3::expr_vector ex_vs(context);
-		std::map<int, z3::expr> z3_vars;
-		for (int x : vars) {
-			z3::expr vx = context.constant(str(x), bv_sort);
-			z3_vars.insert( std::make_pair(x, vx) );
-			ex_vs.push_back(vx);
-		}
-
-		z3::expr_vector params(context);
-		for (int x : Q.second) {
-			auto it = z3_vars.find(x);
-			params.push_back( it->second );
-		}
-
-		if ( fp.query(z3::exists(ex_vs, f(params))) ){
+		if ( fp.query( construct_query(Q) ) ){
 			z3::expr detailed_res = fp.get_answer();
 			int idb_index = dp_ptr->findIDBIndex(rel);
 			parse_and_update(detailed_res, idb_index);
-
 		}
 		else {
 			if(!cancelVote){
@@ -204,7 +210,6 @@ void QueryEngine::queryIDBs(
 			}
 		}
 	}
-
 }
 
 
@@ -569,6 +574,15 @@ void QueryEngine::eliminate_and_refine(std::vector<DatalogProgram>& A,
 }
 
 void QueryEngine::work() {
+
+	std::cout << "will examine IDBTRs ...\n";
+	dp_ptr->examine_each_IDBTR(this);
+
+	//return;
+
+	std::cout << "\n\nwill initGS ... \n";
+	dp_ptr->initGS();
+
 
 	z3::expr_vector and_pos_vec(cm_ptr->C);
 	z3::expr_vector or_neg_vec (cm_ptr->C);

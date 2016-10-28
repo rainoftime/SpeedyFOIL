@@ -31,6 +31,9 @@ struct ContextManager{
 
 	void buildSorts(TypeInfo* TArr, int N);
 	void buildFuncDecls(Relation* RArr, int N);
+
+	void updateFuncDecls(Relation r);
+
 	void loadEDBFacts(Relation* RArr, int N);
 
 	void appendEDBConstr(Z3_fixedpoint& fp) ;

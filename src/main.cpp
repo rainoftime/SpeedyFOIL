@@ -421,6 +421,7 @@ int main(int Argc, char *Argv[])
 	//M.work2();
 	DP.exploreCandidateRules();
 	DP.fillIDBValues();
+	//DP.initGS();
 
 	//DP.test_specialize();
 

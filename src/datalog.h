@@ -12,6 +12,7 @@ namespace SpeedyFOIL {
 
 typedef std::vector< std::pair<Relation, std::vector<int>> > ConcreteRule;
 
+struct QueryEngine;
 struct DPManager;
 struct DatalogProgram;
 struct IDBTR;
@@ -37,6 +38,7 @@ struct IDBTR {
 			//mostS(std::move(idb.mostS)) {}
 
 	IDBTR& operator = (IDBTR&& idb) noexcept {
+		//std::cout <<"assign move is called" << std::endl;
 		rel = idb.rel;
 
 		tm = std::move(idb.tm);
@@ -158,6 +160,9 @@ struct DPManager {
 	bool ask(std::vector<int>&);
 
 	void test_specialize();
+
+	void examine_each_IDBTR(QueryEngine* pEngine);
+	DatalogProgram expand();
 
 	std::string nice_display(const std::vector<int>& Q)const;
 };

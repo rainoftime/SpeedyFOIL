@@ -103,6 +103,7 @@ struct QueryEngine {
 			std::set<std::pair<Relation, std::vector<int>>>&queries);
 
 	void execute(const DatalogProgram & dp);
+	z3::expr construct_query(const std::pair<Relation, std::vector<int>>& Q);
 	void queryIDBs(std::set<std::pair<Relation, std::vector<int>>>& queries, FixedPoint& fp, bool=false);
 	void parse_and_update(z3::expr&, int, bool=false);
 

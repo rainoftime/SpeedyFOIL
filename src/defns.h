@@ -330,6 +330,7 @@ Boolean	  ReadType();
 void	  ReadTypes();
 Tuple	  ReadTuple(Relation R);
 Tuple	  *ReadTuples(Relation R, Boolean Pos);
+Relation CreateFakeIDBRel(int arity);
 Relation  ReadRelation();
 void	  ReadRelations();
 int	  FindType(char *N);

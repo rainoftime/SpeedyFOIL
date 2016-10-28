@@ -266,6 +266,41 @@ Tuple *ReadTuples(Relation R, Boolean Pos)
 	return TheTuples;
 }
 
+Relation CreateFakeIDBRel(int arity) {
+
+	if(fakeRelation == Nil){
+		const char* buf = "fakeIDB";
+		const int LEN = strlen(buf);
+
+		fakeRelation = AllocZero(1, struct _rel_rec);
+		char* name = AllocZero(LEN+1, char);
+		for(int i=0;i<LEN;++i) {
+			name[i] = buf[i];
+		}
+
+		fakeRelation->Name = name;
+		fakeRelation->PossibleTarget = true;
+		fakeRelation->Arity = arity;
+
+		fakeRelation->Type = AllocZero(arity+1, int);
+		fakeRelation->TypeRef = AllocZero(arity+1, TypeInfo);
+
+	}
+
+	if(fakeRelation->Arity < arity) {
+		Realloc(fakeRelation->Type, arity + 1, int);
+		Realloc(fakeRelation->TypeRef, arity + 1, TypeInfo);
+	}
+
+	fakeRelation->Arity = arity;
+	for(int i=1; i<= arity; ++i) {
+		fakeRelation->Type[i] = 1;
+		fakeRelation->TypeRef[i] = Type[1];
+	}
+
+	return fakeRelation;
+}
+
 Relation ReadRelation()
 /*        ------------  */
 {

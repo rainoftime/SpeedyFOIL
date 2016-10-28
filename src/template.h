@@ -35,10 +35,15 @@ struct TPredicate {
 	TPredicate(TPredicate&& pr) noexcept : pid(pr.pid), arity(pr.arity), vdom(std::move(pr.vdom)) {}
 
 	TPredicate& operator= (TPredicate&& pr) noexcept {
-		std::swap(pid, pr.pid);
-		std::swap(arity, pr.arity);
+		pid = pr.pid;
+		arity = pr.arity;
+		//std::swap(pid, pr.pid);
+		//std::swap(arity, pr.arity);
 		//std::swap(vdom, pr.vdom);
 		vdom = std::move(pr.vdom);
+
+		pr.pid = -1;
+		pr.arity = -1;
 		return *this;
 	}
 
@@ -71,6 +76,7 @@ struct TClause {
 	TClause(TClause&& cl) noexcept : hd(std::move(cl.hd)), vbody(std::move(cl.vbody)) {}
 	TClause& operator= (TClause&& cl) noexcept {
 		hd = std::move(cl.hd);
+		//hd = cl.hd; // this is the bug
 		vbody = std::move(cl.vbody);
 		return *this;
 	}
@@ -131,7 +137,9 @@ struct IClause {
 	IClause& operator= (IClause&& cl) noexcept {
 		tc = std::move(cl.tc);
 		cl_hd = cl.cl_hd;
-		cl.cl_body = std::move(cl.cl_body);
+		//cl.cl_body = std::move(cl.cl_body); // a bug
+		cl_body = std::move(cl.cl_body);
+
 		return *this;
 	}
 

@@ -46,6 +46,34 @@ void ContextManager::buildSorts(TypeInfo* TArr, int N) {
 	MaxBits = estimateBits(MaxConst);
 }
 
+void ContextManager::updateFuncDecls(Relation rel){
+	//std::cout << "process " << rel->Name << std::endl;
+
+	z3::sort_vector sv(C);
+
+	for(int j=1; j <= rel->Arity; ++j){
+		/*
+		TypeInfo t = rel->TypeRef[j];
+		auto it = sortMap.find(t);
+		if(it == sortMap.end()) {
+			std::cerr << "ERROR, buildFuncDecls get unknown type: " << t->Name << std::endl;
+		}
+
+		sv.push_back( it->second );
+		*/
+
+		sv.push_back( C.bv_sort(MaxBits) );
+	}
+
+	z3::func_decl pred = C.function(rel->Name, sv, C.bool_sort());
+
+	auto it = funcMap.find(rel);
+	if(it != funcMap.end()) {
+		funcMap.erase(it);
+	}
+	funcMap.insert( std::make_pair(rel, pred) );
+}
+
 void ContextManager::buildFuncDecls(Relation* RArr, int N) {
 	const int START = 0; // to confirm
 	const int END = N; // to confirm
@@ -57,27 +85,7 @@ void ContextManager::buildFuncDecls(Relation* RArr, int N) {
 			continue;
 		}
 
-		//std::cout << "process " << rel->Name << std::endl;
-
-		z3::sort_vector sv(C);
-
-		for(int j=1; j <= rel->Arity; ++j){
-			/*
-			TypeInfo t = rel->TypeRef[j];
-			auto it = sortMap.find(t);
-			if(it == sortMap.end()) {
-				std::cerr << "ERROR, buildFuncDecls get unknown type: " << t->Name << std::endl;
-			}
-
-			sv.push_back( it->second );
-			*/
-
-			sv.push_back( C.bv_sort(MaxBits) );
-		}
-
-		z3::func_decl pred = C.function(rel->Name, sv, C.bool_sort());
-
-		funcMap.insert( std::make_pair(rel, pred) );
+		updateFuncDecls(rel);
 	}
 }
 

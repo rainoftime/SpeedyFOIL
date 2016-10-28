@@ -66,6 +66,7 @@ extern char
 extern UserCustom UserInfo;
 
 extern Relation
+	fakeRelation,
 	*Reln,
 	*RelnOrder,
 	Target;

@@ -62,6 +62,7 @@ UserCustom UserInfo;
 
 
 Relation
+	fakeRelation = Nil,
 	*Reln,			/* relations */
 	*RelnOrder,      	/* order to try relations */
 	Target;			/* relation being induced */

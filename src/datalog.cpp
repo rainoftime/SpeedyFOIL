@@ -1,10 +1,13 @@
 
 #include "datalog.h"
 #include "template.h"
+#include "query.h"
 #include "extern.h"
+#include "defns.h"
 
 #include <map>
 #include <vector>
+#include <queue>
 #include <iostream>
 #include <iterator>
 #include <algorithm>
@@ -396,7 +399,6 @@ void DPManager::exploreCandidateRules() {
 		idbRules.push_back( std::move(idb) );
 	}
 
-	initGS();
 }
 
 std::vector<DatalogProgram> DPManager::refineProg(const DatalogProgram& prog, bool specialize) {
@@ -794,6 +796,150 @@ void DPManager::test_specialize() {
 		}
 	}
 
+}
+
+DatalogProgram DPManager::expand() {
+	DatalogProgram dp(this);
+
+	std::queue< int > Queue;
+	std::set< int > vis;
+	Queue.push( idbRules.size() - 1 );
+
+	while(Queue.size()) {
+		int idb_index = Queue.front();
+		Queue.pop();
+
+		if(vis.find(idb_index) != vis.end()){
+			continue;
+		}
+		vis.insert(idb_index);
+		const int sz = idbRules[idb_index].rules.size();
+		for(int i=0; i < sz; ++i){
+			dp.state[ idb_index ].insert( i );
+		}
+
+		const IDBTR& idb = idbRules[ idb_index ];
+		for(const IClause& rule : idb.rules) {
+			for(const TRelation& rel : rule.cl_body) {
+				if(rel.isIDB()){
+					Queue.push( findIDBIndex( rel.pRel ) );
+				}
+			}
+		}
+	}
+
+
+	return dp;
+}
+
+void DPManager::examine_each_IDBTR(QueryEngine* pEngine){
+	std::set<int> affected_idbs;
+
+	bool update = true;
+	while(update){
+		update = false;
+
+		// find if some idb rule is useless "semantically"
+		const int n = idbRules.size();
+		for(int idb_index = 0; idb_index < n; ++idb_index){
+			int i = 0;
+			const int sz = idbRules[idb_index].rules.size();
+			while(i < sz) {
+				const IDBTR& idb = idbRules[idb_index];
+				const IClause& cl = idb.rules[i];
+
+				//std::cout << "i = " << i << std::endl;
+				//std::cout << "idb_index=" << idb_index << ", idb: " << idb.rel.getRelNameWithTypes() << std::endl;
+				//std::cout << "clause : " << cl.toStr() << std::endl;
+
+
+				// add a fakeIDB
+				//std::cout <<"create fake IDB ..." << std::endl;
+				Relation rel = CreateFakeIDBRel( cl.cl_hd.getArity() );
+				TRelation fakeRel( rel );
+				//std::cout <<"fakeIDB: " << fakeRel.getRelNameWithTypes() << std::endl;
+
+				IDBTR fakeIDB( fakeRel );
+				std::vector<TRelation> body = cl.cl_body;
+				IClause fake_cl( cl.tc ,fakeRel, body);
+				fakeIDB.rules.push_back( std::move(fake_cl) );
+
+				// this will cause  IDBTR& becomes ineffective, thus crash later
+				idbRules.push_back( std::move(fakeIDB) );
+
+
+				// expand to a program
+				DatalogProgram dp = expand();
+
+				//std::cout << "expanded program:"<< std::endl;
+				//std::cout << str(dp);
+
+				// setup context
+				pEngine->cm_ptr->updateFuncDecls(rel);
+
+
+				std::pair<Relation, std::vector<int> > Q;
+				Q.first = rel;
+				Q.second =  cl.tc.hd.vdom;
+
+
+
+				z3::expr query = pEngine->construct_query(Q);
+				// run engine
+				if(pEngine->test(dp, query) == false) {
+					//std::cout << "\n\n>>>>test result is false, will erase rule...\n\n" << std::endl;
+					idbRules.pop_back();
+					break;
+				}
+				else {
+					//std::cout << "\n\n" << cl.toStr() << " seems OK.\n";
+					//std::cout << str(dp) ;
+				}
+
+
+				idbRules.pop_back();
+
+				++i;
+			}
+
+			if(i < sz) {
+				IDBTR& idb = idbRules[idb_index];
+				affected_idbs.insert(idb_index);
+
+				//for(IClause & x : idb.rules){
+				//	std::cout << x.toStr() << std::endl;
+				//}
+
+				std::cout << "erase useless rule: " << idb.rules[i].toStr() << std::endl;
+
+
+
+				idb.rules.erase( idb.rules.begin() + i);
+				//idb.rules.erase( &(idb.rules[i]));
+
+				/*
+				std::vector<IClause> tv;
+				for(int j=0;j<idb.rules.size(); ++j) {
+					if(i == j) continue;
+					tv.push_back( std::move( idb.rules[j] ) );
+				}
+
+				idb.rules = std::move(tv);*/
+
+				//for(IClause & x : idb.rules){
+				//	std::cout << x.toStr() << std::endl;
+				//}
+
+				update = true;
+				break;
+			}
+		}
+	}
+
+	// init affected IDBTR
+	for(int idb_index : affected_idbs) {
+		idbRules[ idb_index ].init();
+	}
 }
 
 std::string DPManager::nice_display(const std::vector<int>& Q) const {
