@@ -26,8 +26,8 @@ def worker(foil,name, MODE, K, tmpl, fin, fout):
         cmd =  "%s -R -B %s %s -y %d -K %d  -T %s < %s > %s" % (foil, name, MODE, i, K, tmpl, fin, fout + ('.%d' % i) )
         print '>>>>>> ', Green(cmd)
 
-        status = 0
-        #status = os.system(cmd)
+        #status = 0
+        status = os.system(cmd)
         if status != 0:
             print '>>>>>> execution failed for %d-th iteration, status=%d, cmd= %s ' % (i, status, Yellow(cmd) )
         else:
