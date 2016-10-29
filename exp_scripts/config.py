@@ -14,8 +14,9 @@ animals = "animals"
 apisan = "apisan"
 andersen = "andersen"
 sgen = "samegen"
+full_modref = "full_modref"
 
-tasks = [downcast, polysite, path, modref, ancestor, abduce, animals, apisan, andersen, sgen ]
+tasks = [downcast, polysite, path, modref, ancestor, abduce, animals, apisan, andersen, sgen, full_modref ]
 #tasks = [polysite]
 
 benchmarks = {
@@ -38,5 +39,7 @@ benchmarks = {
     andersen : { K : 4, DFILE : "aws_andersen.d", },
 
     sgen     : { K : 2, DFILE : "sgen.d"},
+
+    full_modref : { K : 2, DFILE : "full_modref.d"},
 }
 
