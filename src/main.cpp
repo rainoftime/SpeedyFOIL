@@ -8,6 +8,8 @@
 
 #include <iostream>
 #include <string>
+#include <cstdlib>
+
 #include <z3++.h>
 
 /*  Read parameters and initialise variables  */
@@ -111,6 +113,7 @@ int main(int Argc, char *Argv[])
 	SpeedyFOIL::DPManager DP(M);
 	SpeedyFOIL::QueryEngine QE;
 	std::string s;
+	int seed;
 
 	z3::set_param("fixedpoint.engine", "datalog");
 
@@ -226,8 +229,10 @@ int main(int Argc, char *Argv[])
 			break;
 
 		case 'y':
-			SDNCONSTRAINT = true;
-			readSDNConfig(optarg);
+			//SDNCONSTRAINT = true;
+			//readSDNConfig(optarg);
+			seed = atoi(optarg);
+			std::srand(seed);
 			break;
 
 		case 'T':

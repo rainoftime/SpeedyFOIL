@@ -569,18 +569,16 @@ void QueryEngine::eliminate_and_refine(std::vector<DatalogProgram>& A,
 	B = std::move(dps);
 
 	std::cout << "removed_ct=" << remove_ct << ", refine_ct = " << refine_ct
-			<< ", Gs:" << dp_ptr->Gs.size() << std::endl;
+			<< ", size: " << dp_ptr->Gs.size() << std::endl;
 
 }
 
 void QueryEngine::work() {
 
-	std::cout << "will examine IDBTRs ...\n";
+	//std::cout << "will examine IDBTRs ...\n";
 	dp_ptr->examine_each_IDBTR(this);
 
-	//return;
-
-	std::cout << "\n\nwill initGS ... \n";
+	//std::cout << "\n\nwill initGS ... \n";
 	dp_ptr->initGS();
 
 
@@ -628,14 +626,14 @@ void QueryEngine::work() {
 
 			//z3::expr qs = and_qs && (!or_qs);
 
-			std::cout << "before elimination & refinement, Gs.size="
-					<< dp_ptr->Gs.size() << ", Ss.size=" << dp_ptr->Ss.size()
+			std::cout << "before elimination & refinement, Gs.size= "
+					<< dp_ptr->Gs.size() << ", Ss.size= " << dp_ptr->Ss.size()
 					<< std::endl;
 
 			eliminate_and_refine( dp_ptr->Gs, dp_ptr->Ss, true, and_qs, or_qs, Q);
 
-			std::cout << "after elimination & refinement, Gs.size="
-					<< dp_ptr->Gs.size() << ", Ss.size=" << dp_ptr->Ss.size()
+			std::cout << "after elimination & refinement, Gs.size= "
+					<< dp_ptr->Gs.size() << ", Ss.size= " << dp_ptr->Ss.size()
 					<< std::endl;
 
 		} else {
@@ -647,15 +645,15 @@ void QueryEngine::work() {
 
 			//z3::expr qs = and_qs && (!or_qs);
 
-			std::cout << "before elimination & refinement, Gs.size="
-					<< dp_ptr->Gs.size() << ", Ss.size=" << dp_ptr->Ss.size()
+			std::cout << "before elimination & refinement, Gs.size= "
+					<< dp_ptr->Gs.size() << ", Ss.size= " << dp_ptr->Ss.size()
 					<< std::endl;
 
 
 			eliminate_and_refine( dp_ptr->Ss, dp_ptr->Gs, false, and_qs, or_qs, Q);
 
-			std::cout << "after elimination & refinement, Gs.size="
-					<< dp_ptr->Gs.size() << ", Ss.size=" << dp_ptr->Ss.size()
+			std::cout << "after elimination & refinement, Gs.size= "
+					<< dp_ptr->Gs.size() << ", Ss.size= " << dp_ptr->Ss.size()
 					<< std::endl;
 
 		}
