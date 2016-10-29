@@ -13,8 +13,9 @@ abduce = "abduce"
 animals = "animals"
 apisan = "apisan"
 andersen = "andersen"
+sgen = "samegen"
 
-tasks = [downcast, polysite, path, modref, ancestor, abduce, animals, apisan, andersen ]
+tasks = [downcast, polysite, path, modref, ancestor, abduce, animals, apisan, andersen, sgen ]
 #tasks = [polysite]
 
 benchmarks = {
@@ -35,5 +36,7 @@ benchmarks = {
     apisan   : { K : 2, DFILE : "apisan.d", },
 
     andersen : { K : 4, DFILE : "aws_andersen.d", },
+
+    sgen     : { K : 2, DFILE : "sgen.d"},
 }
 
