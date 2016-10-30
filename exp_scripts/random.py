@@ -39,7 +39,8 @@ jobs = []
 for name in tasks:
     bench = benchmarks[name]
 
-    tmpl = os.path.join(data_dir, TMPL_FILE)
+    tmpl_file = get_tmpl(name)
+    tmpl = os.path.join(data_dir, tmpl_file)
     fin = os.path.join(data_dir, bench[DFILE])
     fout = os.path.join(log_dir, name + ".log")
 
