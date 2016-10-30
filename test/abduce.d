@@ -1,21 +1,5 @@
 P: bob,dbob,mbob,ddbob,mdbob,dmbob,mmbob,joe,djoe,mjoe,ddjoe,mdjoe,dmjoe,mmjoe.
 
-*person(P)
-bob
-dbob
-mbob
-ddbob
-mdbob
-dmbob
-mmbob
-joe
-djoe
-mjoe
-ddjoe
-mdjoe
-dmjoe
-mmjoe
-.
 *father(P,P)
 dbob,bob
 ddbob,dbob
