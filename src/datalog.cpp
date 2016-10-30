@@ -878,13 +878,11 @@ void DPManager::examine_each_IDBTR(QueryEngine* pEngine){
 				pEngine->cm_ptr->updateFuncDecls(rel);
 
 
-				std::pair<Relation, std::vector<int> > Q;
-				Q.first = rel;
-				Q.second =  cl.tc.hd.vdom;
+				//std::pair<Relation, std::vector<int> > Q;
+				//Q.first = rel;
+				//Q.second =  cl.tc.hd.vdom;
 
-
-
-				z3::expr query = pEngine->construct_query(Q);
+				z3::expr query = pEngine->construct_query(rel);
 				// run engine
 				if(pEngine->test(dp, query) == false) {
 					//std::cout << "\n\n>>>>test result is false, will erase rule...\n\n" << std::endl;

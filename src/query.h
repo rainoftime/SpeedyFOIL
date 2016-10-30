@@ -99,12 +99,17 @@ struct QueryEngine {
 	std::vector<int> random_pick();
 	bool test_converge();
 
-	FixedPoint prepare(const DatalogProgram & dp,
-			std::set<std::pair<Relation, std::vector<int>>>&queries);
+	//FixedPoint prepare(const DatalogProgram & dp,
+	//		std::set<std::pair<Relation, std::vector<int>>>&queries);
+
+	FixedPoint prepare(const DatalogProgram & dp);
 
 	void execute(const DatalogProgram & dp);
-	z3::expr construct_query(const std::pair<Relation, std::vector<int>>& Q);
-	void queryIDBs(std::set<std::pair<Relation, std::vector<int>>>& queries, FixedPoint& fp, bool=false);
+	//z3::expr construct_query(const std::pair<Relation, std::vector<int>>& Q);
+	//void queryIDBs(std::set<std::pair<Relation, std::vector<int>>>& queries, FixedPoint& fp, bool=false);
+	z3::expr construct_query(Relation);
+	void queryIDBs(FixedPoint& fp, bool=false);
+
 	void parse_and_update(z3::expr&, int, bool=false);
 
 	bool test(const DatalogProgram&, z3::expr);

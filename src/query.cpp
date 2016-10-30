@@ -162,46 +162,30 @@ void QueryEngine::parse_and_update(z3::expr& E, int idx, bool cancelVote) {
 }
 
 
-z3::expr QueryEngine::construct_query(const std::pair<Relation, std::vector<int>>& Q){
+z3::expr QueryEngine::construct_query(Relation rel){
 	z3::context& context = cm_ptr->C;
 	z3::sort bv_sort = context.bv_sort(cm_ptr->MaxBits);
 
-	//std::cout << "Query: Relatio=" << Q.first->Name << " ";
-	//std::copy (Q.second.begin(), Q.second.end(), std::ostream_iterator<int>(std::cout, ","));
-	//std::cout << std::endl;
-
-	Relation rel = Q.first;
 	z3::func_decl f = cm_ptr->funcMap.find(rel)->second;
-
-	std::set<int> vars(Q.second.begin(), Q.second.end());
+	const int arity = rel->Arity;
 
 	z3::expr_vector ex_vs(context);
-	std::map<int, z3::expr> z3_vars;
-	for (int x : vars) {
+	for (int x=0; x < arity; ++x) {
 		z3::expr vx = context.constant(str(x), bv_sort);
-		z3_vars.insert( std::make_pair(x, vx) );
 		ex_vs.push_back(vx);
 	}
 
-	z3::expr_vector params(context);
-	for (int x : Q.second) {
-		auto it = z3_vars.find(x);
-		params.push_back( it->second );
-	}
-
-	return z3::exists(ex_vs, f(params));
+	return z3::exists(ex_vs, f(ex_vs));
 }
 
-void QueryEngine::queryIDBs(
-		std::set<std::pair<Relation, std::vector<int>>>& queries, FixedPoint& fp, bool cancelVote) {
+void QueryEngine::queryIDBs(FixedPoint& fp, bool cancelVote) {
 
-	// Query
-	for (auto Q : queries) {
-		Relation rel = Q.first;
+	const int sz = dp_ptr->idbRules.size();
 
-		if ( fp.query( construct_query(Q) ) ){
+	for(int idb_index = 0; idb_index < sz; ++idb_index){
+		Relation rel = dp_ptr->idbRules[ idb_index ].rel.pRel;
+		if ( fp.query( construct_query(rel) ) ){
 			z3::expr detailed_res = fp.get_answer();
-			int idb_index = dp_ptr->findIDBIndex(rel);
 			parse_and_update(detailed_res, idb_index);
 		}
 		else {
@@ -210,11 +194,11 @@ void QueryEngine::queryIDBs(
 			}
 		}
 	}
+
 }
 
 
-FixedPoint QueryEngine::prepare(const DatalogProgram & dp,
-		std::set<std::pair<Relation, std::vector<int>>>& queries) {
+FixedPoint QueryEngine::prepare(const DatalogProgram & dp) {
 	z3::context& context = cm_ptr->C;
 	z3::sort bv_sort = context.bv_sort(cm_ptr->MaxBits);
 
@@ -242,7 +226,7 @@ FixedPoint QueryEngine::prepare(const DatalogProgram & dp,
 
 		z3::expr head = build_func_constr(context, z3_vars, r[0]);
 
-		queries.insert(r[0]);
+		//queries.insert(r[0]);
 
 		z3::expr_vector ev(context);
 		const int n = r.size();
@@ -264,15 +248,24 @@ FixedPoint QueryEngine::prepare(const DatalogProgram & dp,
 }
 
 void QueryEngine::execute(const DatalogProgram& dp) {
-	std::set<std::pair<Relation, std::vector<int>>> queries;
-	FixedPoint fp = prepare(dp, queries);
+	//std::set<std::pair<Relation, std::vector<int>>> queries;
+
+	// here we ignore variable correspondence, e.g. A(x,x), B(x,y,x)
+	// atually, we should, otherwise we might vote multiple times
+	// if there are multiple rules that could derive the sample tuple
+	std::set< Relation > queries;
+	for(const IDBTR& idb : dp_ptr->idbRules) {
+		queries.insert( idb.rel.pRel );
+	}
+
+	FixedPoint fp = prepare(dp);
 	const int before = warn_ct;
-	queryIDBs(queries, fp);
+	queryIDBs(fp);
 	const int after = warn_ct;
 	if(before != after && !random_mode ) {
 		fail_to_derive.insert( dp.prog_id );
 		//std::cout << "will cancel vote for program: \n" << dp_ptr->str(dp) << std::endl;
-		queryIDBs(queries, fp, true);
+		queryIDBs(fp, true);
 	}
 }
 
@@ -299,8 +292,7 @@ z3::expr QueryEngine::convert_question(std::vector<int>& Q){
 }
 
 bool QueryEngine::test(const DatalogProgram& dp, z3::expr Q) {
-	std::set<std::pair<Relation, std::vector<int>>> queries;
-	FixedPoint fp = prepare(dp, queries);
+	FixedPoint fp = prepare(dp);
 	return fp.query( Q );
 }
 
@@ -421,7 +413,7 @@ std::vector<int> QueryEngine::execute_one_round() {
 		if(dis < 0) dis =-dis;
 
 		//order.push_back( std::make_pair(dis, index) );
-		++index;
+		//++index;
 
 		if(dis < best) {
 
