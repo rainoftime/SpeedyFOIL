@@ -402,7 +402,6 @@ std::vector<int> QueryEngine::execute_one_round() {
 	}
 
 
-
 	const int total_votes = dp_ptr->Gs.size() + dp_ptr->Ss.size();
 	const int ideal = total_votes  / 2;
 	int best = 1<<30;
@@ -410,8 +409,8 @@ std::vector<int> QueryEngine::execute_one_round() {
 	std::cout <<"ideal=" << ideal << std::endl;
 	//std::cout <<"ideal=" << ideal << ", best=" << best << std::endl;
 
-	std::vector< std::pair<int, int> > order;
-	int index = 0;
+	//std::vector< std::pair<int, int> > order;
+	//int index = 0;
 
 	std::set<int> votes;
 	std::vector<int> question;
@@ -421,7 +420,7 @@ std::vector<int> QueryEngine::execute_one_round() {
 		int dis = pr.second - ideal;
 		if(dis < 0) dis =-dis;
 
-		order.push_back( std::make_pair(dis, index) );
+		//order.push_back( std::make_pair(dis, index) );
 		++index;
 
 		if(dis < best) {
