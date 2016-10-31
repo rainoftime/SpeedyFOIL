@@ -7,6 +7,9 @@ _build/
 foil6
 foil
 
+# XCode
+SpeedyFOIL/
+
 # temporary files
 *.cpp~
 *.i~
