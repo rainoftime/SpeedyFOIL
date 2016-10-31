@@ -21,12 +21,12 @@ int estimateBits(int sz) {
 }
 
 
-std::string translate(unsigned int x) {
-	std::stringstream ss;
-	ss << ConstName[x];
-
-	return ss.str();
-}
+//std::string translate(unsigned int x) {
+//	std::stringstream ss;
+//	ss << ConstName[x];
+//
+//	return ss.str();
+//}
 
 } // end of anonymous namespace
 
@@ -71,7 +71,10 @@ void ContextManager::updateFuncDecls(Relation rel){
 	if(it != funcMap.end()) {
 		funcMap.erase(it);
 	}
-	funcMap.insert( std::make_pair(rel, pred) );
+	auto result = funcMap.insert( std::make_pair(rel, pred) );
+	if(!result.second) {
+		std::cerr << "update FuncDecls failed for " << rel->Name << std::endl;
+	}
 }
 
 void ContextManager::buildFuncDecls(Relation* RArr, int N) {
@@ -135,7 +138,7 @@ void ContextManager::appendEDBConstr(Z3_fixedpoint& fp) {
 		const std::set<std::vector<unsigned int> >& st = pr.second;
 
 		for (auto v : st) {
-			Z3_fixedpoint_add_fact(C, fp, f, v.size(), v.data());
+			Z3_fixedpoint_add_fact(C, fp, f, (unsigned int)v.size(), v.data());
 		}
 	}
 }

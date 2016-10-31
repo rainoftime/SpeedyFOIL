@@ -7,6 +7,7 @@
 
 
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <cstdlib>
 
@@ -95,9 +96,24 @@ Var GetSDNConfigBodyV(const char* RelName) {
 	return 255;
 }
 
+void redirectIO(){
+  if (getenv("XCODE_STDIN")) {
+    freopen( getenv("XCODE_STDIN"), "r", stdin);
+
+    //std::ifstream arq(getenv("STDIN"));
+    //std::cin.rdbuf(arq.rdbuf());
+    std::cout << "redirected input" << std::endl;
+  }
+  else{
+    //std::cout << "failed to redirect IO" << std::endl;
+  }
+}
+
 int main(int Argc, char *Argv[])
 /*    ----  */
 {
+    redirectIO(); // used to debug in Xcode
+  
 	int o, i, Cases, Errors;
 	extern char *optarg;
 	extern int optind;
