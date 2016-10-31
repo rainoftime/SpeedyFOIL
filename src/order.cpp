@@ -21,7 +21,7 @@ void ExamineVariableRelationships()
 	Const VVal, WVal;
 	Ordering X, ThisX;
 	Tuple *Scan, Case;
-	int *TypeOrder;
+	int *TypeOrder = Nil;
 	Boolean FirstTime = true;
 
 	/*  First reset all partial orders  */
@@ -105,7 +105,7 @@ Boolean RecursiveCallOK(Var *A)
 /*       ---------------  */
 {
 	int i, j, k, N, NRowLeft, Count, NRow, BestCount, BestCol;
-	Ordering *ThisCall, ThisOrder, BestOrder, Cell;
+	Ordering *ThisCall, ThisOrder, BestOrder = -1, Cell;
 	Boolean SomeInequality = false, ColOrder[100];
 
 	static Ordering **Map = Nil;

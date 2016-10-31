@@ -12,9 +12,9 @@
 namespace SpeedyFOIL {
 
 namespace {
-bool testConsistency(const IClause& cl) {
-	return false;
-}
+//bool testConsistency(const IClause& cl) {
+//	return false;
+//}
 
 bool checkAndUpdate(const TPredicate& pred,
 		const TRelation& rel,
@@ -72,7 +72,7 @@ void Matching::exploreBody(const TClause& tc, std::vector<TRelation>& rels,
 		return;
 		//return true;
 	}
-	int k = rels.size();
+	int k = (int) rels.size();
 	const TPredicate & pred = tc.vbody[k];
 
 	std::vector<TRelation> relCandidates = relm.finPossibleInst(pred, false);

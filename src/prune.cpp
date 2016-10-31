@@ -646,7 +646,7 @@ void ReplaceVariable(Var Old, Var New)
 void SiftClauses()
 /*    -----------  */
 {
-	int i, j, Covers, Last, Retain = 0, Remove = 0;
+	int i, j, Covers, Last = -1, Retain = 0, Remove = 0;
 	Boolean *Need, *Delete;
 
 	if (!NCl)

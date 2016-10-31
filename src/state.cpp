@@ -247,9 +247,9 @@ void FormNewState(Relation R, Boolean RSign, Var *A, int NewSize)
 /*    ------------  */
 {
 	Tuple *TSP, Case, *Bindings, Instance;
-	int i, N, RN;
+  int i, N;// RN;
 	Boolean BuiltIn = false, Match, NotNegated;
-	Const X2;
+	Const X2 = -1;
 
 	if (Predefined(R)) {
 		/*  Prepare for calls to Satisfies()  */

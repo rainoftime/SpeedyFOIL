@@ -270,7 +270,7 @@ Relation CreateFakeIDBRel(int arity) {
 
 	if(fakeRelation == Nil){
 		const char* buf = "fakeIDB";
-		const int LEN = strlen(buf);
+		const int LEN = (int) strlen(buf);
 
 		fakeRelation = AllocZero(1, struct _rel_rec);
 		char* name = AllocZero(LEN+1, char);
@@ -954,7 +954,7 @@ char *CopyString(const char *s)
 	char * newstr;
 	int l;
 
-	l = strlen(s) + 1;
+	l = (int)strlen(s) + 1;
 	newstr = Alloc(l, char);
 	memcpy(newstr, s, l);
 

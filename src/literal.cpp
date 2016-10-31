@@ -23,8 +23,8 @@ TicksCheck; /* point to check time again */
 void ExploreArgs(Relation R, Boolean CountFlag)
 /*    -----------  */
 {
-	int i, j, k;
-	Literal tmpL;
+	//int i, j, k;
+	//Literal tmpL;
 	int MaxArgs = 1;
 	Var V;
 
@@ -361,8 +361,8 @@ Boolean TryArgs(Relation R, int This, int HiVar, int FreeVars, int MaxDepth,
 		int Key, Boolean TryMostGeneral, Boolean RecOK)
 		/*       -------  */
 		{
-	int i, j, k;
-	Literal tmpL;
+	//int i, j, k;
+	//Literal tmpL;
 
 	Var V, W, MaxV;
 	Boolean Prune, UselessSameVar;

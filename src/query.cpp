@@ -180,7 +180,7 @@ z3::expr QueryEngine::construct_query(Relation rel){
 
 void QueryEngine::queryIDBs(FixedPoint& fp, bool cancelVote) {
 
-	const int sz = dp_ptr->idbRules.size();
+	const size_t sz = dp_ptr->idbRules.size();
 
 	for(int idb_index = 0; idb_index < sz; ++idb_index){
 		Relation rel = dp_ptr->idbRules[ idb_index ].rel.pRel;
@@ -229,7 +229,7 @@ FixedPoint QueryEngine::prepare(const DatalogProgram & dp) {
 		//queries.insert(r[0]);
 
 		z3::expr_vector ev(context);
-		const int n = r.size();
+		const size_t n = r.size();
 		for (int i = 1; i < n; ++i) {
 			z3::expr e = build_func_constr(context, z3_vars, r[i]);
 			ev.push_back(e);
@@ -282,7 +282,7 @@ z3::expr QueryEngine::convert_question(std::vector<int>& Q){
 
 	z3::context& context = cm_ptr->C;
 	z3::expr_vector params( context);
-	const int sz = Q.size();
+	const size_t sz = Q.size();
 	for(int i=1; i< sz; ++i) {
 		z3::expr val = context.bv_val( Q[i] ,cm_ptr->MaxBits);
 		params.push_back(val);
@@ -394,7 +394,7 @@ std::vector<int> QueryEngine::execute_one_round() {
 	}
 
 
-	const int total_votes = dp_ptr->Gs.size() + dp_ptr->Ss.size();
+	const int total_votes = (int) (dp_ptr->Gs.size() + dp_ptr->Ss.size());
 	const int ideal = total_votes  / 2;
 	int best = 1<<30;
 
@@ -693,7 +693,7 @@ void QueryEngine::draw_layer_graph(std::set<int>& greens){
 	fout << "digraph G {\n";
 
 
-	const int L = layers.size();
+	const size_t L = layers.size();
 
 	//for(std::vector<int>& v : layers){
 

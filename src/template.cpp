@@ -186,7 +186,7 @@ bool TClause::existDisconnectedPred() const {
 		connectedVars.insert(x);
 	}
 
-	const int sz = vbody.size();
+	const size_t sz = vbody.size();
 	bool update = true;
 	while(update) {
 		update = false;
@@ -287,7 +287,7 @@ void IClause::explain() const{
 	std::cout << formatTPredicate(tc.hd, cl_hd) << " :- ";
 
 	// output body
-	int n = tc.vbody.size();
+	const size_t n = tc.vbody.size();
 	for(int i=0; i < n; ++i) {
 		if(i) {
 			std::cout << ",";
@@ -304,7 +304,7 @@ std::string IClause::toStr() const {
 
 	ss << formatTPredicate(tc.hd, cl_hd) << " :- ";
 
-	const int n = tc.vbody.size();
+	const size_t n = tc.vbody.size();
 	for(int i=0; i < n; ++i) {
 		if(i) {
 			ss << ",";
@@ -322,7 +322,7 @@ std::vector< std::pair<Relation, std::vector<int>> > IClause::zip() const {
 
 	res.push_back( std::make_pair( cl_hd.pRel, tc.hd.vdom ) );
 
-	const int sz = cl_body.size();
+	const size_t sz = cl_body.size();
 	for(int i=0; i < sz; ++i) {
 		res.push_back( std::make_pair( cl_body[i].pRel, tc.vbody[i].vdom ) );
 	}
@@ -334,7 +334,7 @@ std::vector< std::pair<Relation, std::vector<int>> > IClause::zip() const {
 bool IClause::is_useless() const {
 	//check if the body contains the exact head relation and variables
 
-	const int sz = cl_body.size();
+	const size_t sz = cl_body.size();
 	for(int i=0; i<sz; ++i) {
 		if(cl_body[i].pRel != cl_hd.pRel) {
 			continue;
@@ -390,15 +390,15 @@ void TemplateManager::showTemplates() const {
 }
 
 void TemplateManager::normalizePO() {
-	const int sz = templates.size();
+	const size_t sz = templates.size();
 	std::cout << "normalizing PO..\n";
 	for(int i=0;i< sz; ++i) {
 		std::set<int> mark;
 		for(int x : general_po[i]){
 			std::set<int> st = general_po[x];
 			if( st.find(i) != st.end()){
-				int sz1 = templates[i].vbody.size();
-				int sz2 = templates[x].vbody.size();
+				const size_t sz1 = templates[i].vbody.size();
+				const size_t sz2 = templates[x].vbody.size();
 				if(sz1 > sz2) {
 					mark.insert(x);
 					std::cout << templates[i].toStr() << "  vs  " << templates[x].toStr() << std::endl;
@@ -419,7 +419,7 @@ void TemplateManager::normalizePO() {
 
 
 void TemplateManager::buildPartialOrder() {
-	const int sz = templates.size();
+	const size_t sz = templates.size();
 	for(int i=0;i< sz; ++i) {
 
 		//std::cout<< "buildPartialOrder, i=" << i << std::endl;
@@ -457,7 +457,7 @@ void TemplateManager::buildPartialOrder() {
 
 std::set<int> TemplateManager::getMostGeneral() const {
 	std::set<int> res;
-	const int sz = templates.size();
+	const size_t sz = templates.size();
 	for(int i=0;i<sz;++i) {
 		auto it = specific_po.find(i);
 		if( it == specific_po.end() || it->second.size() == 0) {
@@ -469,7 +469,7 @@ std::set<int> TemplateManager::getMostGeneral() const {
 
 std::set<int> TemplateManager::getMostSpecific() const {
 	std::set<int> res;
-	const int sz = templates.size();
+	const size_t sz = templates.size();
 	for(int i=0;i<sz;++i) {
 		auto it =general_po.find(i);
 		if( it == general_po.end() || it->second.size() == 0 ) {
@@ -515,7 +515,7 @@ void TemplateManager::logPO2dot(std::string fpath) {
 	}
 	fout << "\n  }\n";
 
-	const int sz = templates.size();
+	const size_t sz = templates.size();
 	for (int i = 0; i < sz; ++i) {
 		if (general_po[i].size()) {
 			fout << "v" << i << " -> {";
@@ -543,7 +543,7 @@ void TemplateManager::logPO2dot(std::string fpath) {
 }
 
 int TemplateManager::indexOf(const TClause& tc) const {
-	const int n = templates.size();
+	const size_t n = templates.size();
 	for(int i=0; i < n; ++i) {
 		const TClause& t = templates[i];
 		if(tc == t) {

@@ -106,9 +106,9 @@ float
 void EvaluateLiteral(Relation R, Var *A, float LitBits, Boolean *Prune)
 /*    ---------------  */
 {
-	Boolean Abandoned, RealDuplicateVars = false, WeakT, WeakF, SavedSign;
+	Boolean Abandoned, RealDuplicateVars = false, WeakT = false, WeakF = false, SavedSign = false;
 	Var V, W;
-	int i, j, Coverage, Size;
+	int i, j, Coverage = -1, Size;
 	float PosGain, NegGain, Gain, CurrentRatio, Accuracy, Extra;
 
 	/*
@@ -519,9 +519,9 @@ Boolean TerminateScan(Relation R, Var *A)
 {
 	Tuple *TSP, Case;
 	Boolean BuiltIn = false, FirstNegTuple = true;
-	int RN, MaxCover, OrigPos = 0;
-	Const X2;
-	float NewTNegThresh, NowFNegThresh;
+	int MaxCover, OrigPos = 0; // RN, 
+	Const X2 = -1;
+	float NewTNegThresh = 0.0, NowFNegThresh = 0.0;
 
 	if (Predefined(R)) {
 		BuiltIn = true;
@@ -712,7 +712,7 @@ void CheckNewVars(Tuple Case)
 /*    ------------  */
 {
 	Var P;
-	Const OldVarVal;
+	Const OldVarVal = -1;
 	int i, j, Col;
 
 	for (i = 0; i < NDuplicateVars; i++) {

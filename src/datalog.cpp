@@ -49,8 +49,8 @@ bool check_proof(const IClause& g, const IClause& s, const PII& relMap, const PI
 
 
 	bool matched = false;
-	int g_sz = g.cl_body.size();
-	int s_sz = s.cl_body.size();
+	const size_t g_sz = g.cl_body.size();
+	const size_t s_sz = s.cl_body.size();
 	for(int i=0; i < g_sz; ++i) {
 		const TRelation& g_t = g.cl_body[i];
 
@@ -144,15 +144,15 @@ std::set<int> IDBTR::extractRules(const std::set<int>& tmpls) const {
 // assume tm, rules  are already given
 // initialize tmpl2rules, mostG, mostS
 void IDBTR::init(){
-	const int num_rules = rules.size();
-	const int num_tmpls = tm.templates.size();
+	const size_t num_rules = rules.size();
+	const size_t num_tmpls = tm.templates.size();
 
 	// initialize tmpl2rules
 	tmpl2rules.clear();
 
 	for(int i=0; i < num_rules; ++i) {
 		const IClause& cl = rules[i];
-		int j = std::find(tm.templates.begin(), tm.templates.end(), cl.tc) - tm.templates.begin();
+		int j = (int)( std::find(tm.templates.begin(), tm.templates.end(), cl.tc) - tm.templates.begin() );
 		if(j < num_tmpls) {
 			tmpl2rules[j].insert(i);
 		}
@@ -319,7 +319,7 @@ std::vector<std::set<int>> IDBTR::chooseK(int k, bool general) const {
 
 	std::vector<int> v(st.begin(), st.end());
 
-	return chooseK_helper(v.size(), k, v);
+	return chooseK_helper( (int) v.size(), k, v);
 }
 
 
@@ -488,7 +488,7 @@ std::vector<DatalogProgram> DPManager::refineProgWithTarget(const DatalogProgram
 					bool pass = true;
 					for (auto pr : dp.state) {
 						int index = pr.first;
-						std::set<int> s = backwardAnalysis(prog, idb_index);
+						std::set<int> s = backwardAnalysis(prog, index);
 						if (s.size() >= DEPTH) {
 							pass = false;
 							break;
@@ -519,7 +519,7 @@ std::vector<DatalogProgram> DPManager::refineProgWithTarget(const DatalogProgram
 std::set<int> DPManager::backwardAnalysis(const DatalogProgram& prog, int idb_index) const {
 	std::set<int> st;
 
-	int prev_size = 0;
+	size_t prev_size = 0;
 	st.insert(idb_index);
 	while(prev_size < st.size()){
 		prev_size = st.size();
@@ -557,7 +557,7 @@ void DPManager::init_helper(bool general) {
 	std::vector< std::vector< std::set<int> > > VVS;
 
 	long long space = 1;
-	const int sz = idbRules.size();
+	const size_t sz = idbRules.size();
 	for(int i=0; i<sz; ++i) {
 		const IDBTR& idb = idbRules[i];
 		std::vector<std::set<int>>  vst = idb.chooseK(K, general);
@@ -653,7 +653,7 @@ std::string DPManager::str(const DatalogProgram& dp) {
 }
 
 int DPManager::findIDBIndex(Relation r) const {
-	const int n = idbRules.size();
+	const size_t n = idbRules.size();
 	for(int i=0; i < n; ++i) {
 		const IDBTR& idb = idbRules[i];
 		if(r == idb.rel.pRel) {
@@ -674,7 +674,7 @@ bool DPManager::can_derive_something(const DatalogProgram& x) const {
 	}
 
 	std::set<int> resolved;
-	int sz = tasks.size() + 1;
+	size_t sz = tasks.size() + 1;
 	while(sz > tasks.size()) {
 		sz = tasks.size();
 
@@ -789,7 +789,7 @@ void DPManager::test_specialize() {
 
 	for(const IDBTR& idb : idbRules ) {
 		if(idb.rel.getRelName() == "reptile"){
-			int sz = idb.rules.size();
+			const size_t sz = idb.rules.size();
 			for(int i=0; i < sz; ++i) {
 				idb.specialize(i);
 			}
@@ -803,7 +803,7 @@ DatalogProgram DPManager::expand() {
 
 	std::queue< int > Queue;
 	std::set< int > vis;
-	Queue.push( idbRules.size() - 1 );
+	Queue.push( (int)idbRules.size() - 1 );
 
 	while(Queue.size()) {
 		int idb_index = Queue.front();
@@ -813,7 +813,7 @@ DatalogProgram DPManager::expand() {
 			continue;
 		}
 		vis.insert(idb_index);
-		const int sz = idbRules[idb_index].rules.size();
+		const size_t sz = idbRules[idb_index].rules.size();
 		for(int i=0; i < sz; ++i){
 			dp.state[ idb_index ].insert( i );
 		}
@@ -840,10 +840,10 @@ void DPManager::examine_each_IDBTR(QueryEngine* pEngine){
 		update = false;
 
 		// find if some idb rule is useless "semantically"
-		const int n = idbRules.size();
+		const size_t n = idbRules.size();
 		for(int idb_index = 0; idb_index < n; ++idb_index){
 			int i = 0;
-			const int sz = idbRules[idb_index].rules.size();
+			const size_t sz = idbRules[idb_index].rules.size();
 			while(i < sz) {
 				const IDBTR& idb = idbRules[idb_index];
 				const IClause& cl = idb.rules[i];
