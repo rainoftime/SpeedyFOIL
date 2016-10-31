@@ -299,10 +299,10 @@ std::set<int> IDBTR::specialize(int rule_index) const{
 
 
 std::vector<std::set<int>> IDBTR::chooseK(int k, bool general) const {
-	if(k > 4) {
+	if(k > 5) {
 		std::vector<std::set<int>> res;
-		std::cerr << "K is too large: " << k << std::endl;
-		return res;
+		std::cerr << "K might be too large: " << k << std::endl;
+		//return res;
 	}
 
 	std::set<int> st;
