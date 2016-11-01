@@ -10,6 +10,10 @@ foil
 # XCode
 SpeedyFOIL/
 
+# unrelated files
+*.dlog
+*.txt
+
 # temporary files
 *.cpp~
 *.i~
