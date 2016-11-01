@@ -749,6 +749,14 @@ bool DPManager::hash_and_record(const DatalogProgram& x){
 	return true;
 }
 
+bool DPManager::total_rules_too_large(const DatalogProgram& dp) const {
+	int ct = 0;
+	for(const auto& x : dp.state) {
+		ct += x.second.size();
+	}
+	return ct > MaxRules ;
+}
+
 
 bool DPManager::pass_filters(const DatalogProgram& dp) {
 	if(! can_derive_something(dp)) {
@@ -759,6 +767,11 @@ bool DPManager::pass_filters(const DatalogProgram& dp) {
 
 	if(! hash_and_record(dp) ){
 		// already existed, skip
+		return false;
+	}
+
+	if(total_rules_too_large(dp)) {
+		// too many rules, ignore
 		return false;
 	}
 

@@ -144,7 +144,7 @@ int main(int Argc, char *Argv[])
 
 	/*  Process options  */
 
-	while ((o = getopt(Argc, Argv, "GSRpnNus:a:f:g:V:d:A:w:l:t:m:v:y:T:K:B:")) != EOF) {
+	while ((o = getopt(Argc, Argv, "GSRpnNus:a:f:g:V:d:A:w:l:t:m:v:y:T:K:B:M:")) != EOF) {
 		if (FirstTime) {
 			printf("\n    Options:\n");
 			FirstTime = false;
@@ -263,6 +263,11 @@ int main(int Argc, char *Argv[])
 		case 'K':
 			DP.K = atoi(optarg);
 			std::cout << "K: " << DP.K << std::endl;
+			break;
+
+		case 'M':
+			DP.MaxRules = atoi(optarg);
+			std::cout << "MaxRules: " << DP.MaxRules << std::endl;
 			break;
 
 		case 'B':

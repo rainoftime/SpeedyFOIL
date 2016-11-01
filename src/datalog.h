@@ -108,6 +108,7 @@ struct IDBValue {
 
 
 struct DPManager {
+	int MaxRules = 1<<30;
 	int K = 1;
 	bool enableG = false;
 	bool enableS = false;
@@ -152,6 +153,8 @@ struct DPManager {
 	bool hash_and_record(const DatalogProgram&);
 
 	bool can_derive_something(const DatalogProgram&) const;
+
+	bool total_rules_too_large(const DatalogProgram& ) const;
 
 	//bool too_deep(const DatalogProgram&) const;
 
