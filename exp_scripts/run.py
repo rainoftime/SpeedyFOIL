@@ -39,8 +39,14 @@ for name in tasks:
     fout = os.path.join(log_dir, name + ".log")
 
     check_exist_err(fin)
+    cmd  = "%s -B %s %s " % (foil, name, MODE)
+    cmd += " -K %d " % bench[K]
+    cmd += " -T %s " % tmpl
+    if M in bench:
+        cmd += " -M %d " % bench[M]
+    cmd += " < %s " % fin
+    cmd += " > %s " % fout
 
-    cmd =  "%s -B %s %s -K %d  -T %s < %s > %s" % (foil, name, MODE, bench[K], tmpl, fin, fout )
     jb = multiprocessing.Process(target = worker, args=(cmd,) )
     jobs.append(jb)
 

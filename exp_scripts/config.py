@@ -10,6 +10,7 @@ T_ALL = "all.t"
 TMPL = "template"
 DFILE =  "dfile"
 K = "K"
+M = "M"
 
 downcast = "downcast"
 polysite = "polysite"
@@ -35,7 +36,7 @@ perm = "perm"
 
 #full_modref = "full_modref"
 
-pa_tasks = [downcast, polysite, escape, p25_modref,  andersen,]
+pa_tasks = [downcast, polysite, escape, p50_modref,  andersen,]
 kd_tasks = [ancestor, abduce, animals, sgen, apisan, ]
 math_tasks = [ackermann, ncm, gcd,]
 graph_tasks = [ path,  scc, uf ]
@@ -77,10 +78,10 @@ benchmarks = {
 
     path     : { K : 2, DFILE : "path.d", },
     ancestor : { K : 2, DFILE : "ancestor_new.d", },
-    abduce   : { K : 2, DFILE : "abduce.d", },
+    abduce   : { K : 2, M : 3,  DFILE : "abduce.d", },
     animals  : { K : 1, DFILE : "animals.d", },
-    sgen     : { K : 2, DFILE : "sgen.d"},
-    scc     : { K : 2, DFILE : "scc.d"},
+    sgen     : { K : 2, M : 3, DFILE : "sgen.d"},
+    scc     : { K : 2, M : 3, DFILE : "scc.d"},
 
 
     ackermann : { K : 3,  DFILE : "ackermann.d", },
@@ -89,9 +90,9 @@ benchmarks = {
 
 
     member : { K:2, DFILE : "member.d", },
-    sort :  { K:3, DFILE : "sort.d", },
+    sort :  { K:3, M : 4, DFILE : "sort.d", },
     perm : { K:2, DFILE : "perm.d", },
-    uf : { K:5, DFILE :  "uf.d"},
+    uf : { K:5, M : 4, DFILE :  "uf.d"},
     reverse : { K:2,  DFILE: "list.d"},
 
     #full_modref : { K : 2, DFILE : "full_modref.d"},

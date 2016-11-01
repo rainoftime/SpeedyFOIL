@@ -17,14 +17,20 @@ for f in sys.argv[1:]:
 foil, data_dir, t_dir, log_dir = sys.argv[1:]
 
 
-def worker(foil,name, MODE, K, tmpl, fin, fout):
+def worker(foil,name, MODE, bench, tmpl, fin, fout):
 
     print '>> random experiment for ',  Green(name)
 
+    k = bench[K]
+    m = 2**20
+    if M in bench:
+        m = bench[M]
+
     for i in xrange(100):
         print '>>>> START %d-th iteration for %s' % (i, Green(name) )
-        cmd =  "%s -R -B %s %s -y %d -K %d  -T %s < %s > %s" % (foil, name, MODE, i, K, tmpl, fin, fout + ('.%d' % i) )
+        cmd =  "%s -R -B %s %s -y %d -K %d -M %d  -T %s < %s > %s" % (foil, name, MODE, i, k, m, tmpl, fin, fout + ('.%d' % i) )
         print '>>>>>> ', Green(cmd)
+        return
 
         #status = 0
         status = os.system(cmd)
@@ -47,7 +53,7 @@ for name in tasks:
     check_exist_err(fin)
 
     #cmd =  "%s -B %s %s -K %d  -T %s < %s > %s" % (foil, name, MODE, bench[K], tmpl, fin, fout )
-    jb = multiprocessing.Process(target = worker, args=(foil,name, MODE, bench[K], tmpl, fin, fout,) )
+    jb = multiprocessing.Process(target = worker, args=(foil,name, MODE, bench, tmpl, fin, fout,) )
     jobs.append(jb)
 
 
