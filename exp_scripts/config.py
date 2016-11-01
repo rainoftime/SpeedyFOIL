@@ -89,7 +89,7 @@ benchmarks = {
 
 
     member : { K:2, DFILE : "member.d", },
-    sort :  { K:4, DFILE : "sort.d", },
+    sort :  { K:3, DFILE : "sort.d", },
     perm : { K:2, DFILE : "perm.d", },
     uf : { K:5, DFILE :  "uf.d"},
     reverse : { K:2,  DFILE: "list.d"},
