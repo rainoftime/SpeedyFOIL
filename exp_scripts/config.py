@@ -1,10 +1,11 @@
 MODE = "-GS"
 
-T_GRAPH = "tmpl_graph.txt"
-T_MATH = "tmpl_math.txt"
-T_ANALYSIS = "tmpl_analysis.txt"
-T_DS = "tmpl_ds.txt"
-T_ALL = "tmpl_overall.txt"
+T_GRAPH = "graph.t"
+T_MATH = "math.t"
+T_PA= "pa.t"
+T_LIST = "list.t"
+T_KD = "knowledge.t"
+T_ALL = "all.t"
 
 TMPL = "template"
 DFILE =  "dfile"
@@ -34,29 +35,32 @@ perm = "perm"
 
 #full_modref = "full_modref"
 
-pa_tasks = [downcast, polysite, escape, p25_modref, apisan, andersen,]
+pa_tasks = [downcast, polysite, escape, p25_modref,  andersen,]
+kd_tasks = [ancestor, abduce, animals, sgen, apisan, ]
 math_tasks = [ackermann, ncm, gcd,]
-graph_tasks = [ path, ancestor, abduce, animals,  sgen, scc ]
-ds_tasks = [ member, sort, perm, uf, reverse ]
+graph_tasks = [ path,  scc, uf ]
+list_tasks = [ member, sort, perm, reverse ]
 
-tasks = pa_tasks + math_tasks + graph_tasks + ds_tasks
+tasks = pa_tasks + math_tasks + graph_tasks + list_tasks + kd_tasks
 
 #tasks = [polysite]
 
 
 def get_tmpl(t):
     if t not in tasks:
-        print Yellow(t), "is not a valid tasks"
+        print t, "is not a valid tasks"
     if t in pa_tasks:
-        return T_ANALYSIS
-    if t in math_tasks:
+        return T_PA
+    elif t in math_tasks:
         return T_MATH
-    if t in graph_tasks:
+    elif t in graph_tasks:
         return T_GRAPH
-    if t in ds_tasks:
-        return T_DS
+    elif t in list_tasks:
+        return T_LIST
+    elif t in kd_tasks:
+        return T_KD
 
-    print "Unknown category for ", Yellow(t)
+    print "Unknown category for ", t
 
     return T_ALL
 
@@ -83,7 +87,7 @@ benchmarks = {
     gcd : { K : 3,  DFILE : "gcd.d", },
     ncm : { K:2, DFILE : "ncm.d", },
 
-    
+
     member : { K:2, DFILE : "member.d", },
     sort :  { K:4, DFILE : "sort.d", },
     perm : { K:2, DFILE : "perm.d", },
