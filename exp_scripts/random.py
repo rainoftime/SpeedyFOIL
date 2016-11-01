@@ -9,12 +9,12 @@ import os
 
 import multiprocessing
 
-usage_exit("path_to_foil", "test_data_dir", "log_dir")
+usage_exit("path_to_foil", "data_dir", "template_dir",  "log_dir")
 
 for f in sys.argv[1:]:
     check_exist_err(f)
 
-foil, data_dir, log_dir = sys.argv[1:]
+foil, data_dir, t_dir, log_dir = sys.argv[1:]
 
 
 def worker(foil,name, MODE, K, tmpl, fin, fout):
@@ -40,7 +40,7 @@ for name in tasks:
     bench = benchmarks[name]
 
     tmpl_file = get_tmpl(name)
-    tmpl = os.path.join(data_dir, tmpl_file)
+    tmpl = os.path.join(t_dir, tmpl_file)
     fin = os.path.join(data_dir, bench[DFILE])
     fout = os.path.join(log_dir, name + ".log")
 
