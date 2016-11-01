@@ -386,19 +386,19 @@ std::vector<int> QueryEngine::execute_one_round() {
 	execute_one_round_helper(dp_ptr->Ss);
 
 
-	std::cout << "warn_ct = " << warn_ct << std::endl;
-	std::cout << "\ntuple stats: \n";
-	for (auto pr : vote_stats) {
-		std::cout << pr.second << " votes for "
-				<< dp_ptr->nice_display(pr.first) << std::endl;
-	}
+	//std::cout << "warn_ct = " << warn_ct << std::endl;
+	//std::cout << "\ntuple stats: \n";
+	//for (auto pr : vote_stats) {
+	//	std::cout << pr.second << " votes for "
+	//			<< dp_ptr->nice_display(pr.first) << std::endl;
+	//}
 
 
 	const int total_votes = (int) (dp_ptr->Gs.size() + dp_ptr->Ss.size());
 	const int ideal = total_votes  / 2;
 	int best = 1<<30;
 
-	std::cout <<"ideal=" << ideal << std::endl;
+	std::cout <<"total_votes: " << total_votes << std::endl;
 	//std::cout <<"ideal=" << ideal << ", best=" << best << std::endl;
 
 	//std::vector< std::pair<int, int> > order;
@@ -428,7 +428,7 @@ std::vector<int> QueryEngine::execute_one_round() {
 	}
 
 
-	std::cout << "best distance : " << best << std::endl;
+	std::cout << "best distance: " << best << std::endl;
 
 	if(votes.size() == 1) {
 		if( *votes.begin() == total_votes ) {

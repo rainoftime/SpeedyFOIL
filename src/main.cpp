@@ -253,6 +253,7 @@ int main(int Argc, char *Argv[])
 
 		case 'T':
 			s = std::string(optarg);
+			std::cout << "Using Templates: " << s << std::endl;
 			M.tm.loadTemplates(s);
 			std::cout << "Number of templates: " << M.tm.templates.size() << std::endl;
 			//M.tm.showTemplates();
@@ -261,6 +262,7 @@ int main(int Argc, char *Argv[])
 
 		case 'K':
 			DP.K = atoi(optarg);
+			std::cout << "K: " << DP.K << std::endl;
 			break;
 
 		case 'B':

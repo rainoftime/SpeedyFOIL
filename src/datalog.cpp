@@ -389,7 +389,7 @@ void DPManager::exploreCandidateRules() {
 		std::cout << "most specific: " << tempM.getMostSpecific().size() << std::endl;
 		std::cout << "independent: " << tempM.getIndependent().size() << std::endl;
 
-		tempM.logPO2dot( rel.getRelName() + ".dot" );
+		//tempM.logPO2dot( rel.getRelName() + ".dot" );
 
 		IDBTR idb(rel);
 		idb.tm = std::move(tempM);
