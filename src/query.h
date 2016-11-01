@@ -109,6 +109,7 @@ struct QueryEngine {
 	//void queryIDBs(std::set<std::pair<Relation, std::vector<int>>>& queries, FixedPoint& fp, bool=false);
 	z3::expr construct_query(Relation);
 	void queryIDBs(FixedPoint& fp, bool=false);
+	bool validate_with_full_IDBs();
 
 	void parse_and_update(z3::expr&, int, bool=false);
 

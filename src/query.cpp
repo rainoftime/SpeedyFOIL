@@ -368,6 +368,31 @@ void QueryEngine::execute_one_round_helper(std::vector<DatalogProgram>& progs) {
 	std::cout << "cancel votes for " << cancel_ct << " programs, now size: " << progs.size() << std::endl;
 }
 
+bool QueryEngine::validate_with_full_IDBs() {
+	bool succ = true;
+	for (auto pr : vote_stats) {
+		const std::vector<int>& Q = pr.first;
+		if(! dp_ptr->ask(Q)){
+			std::cout << dp_ptr->nice_display(Q) << " is predicated to be true, but actually false\n";
+			succ = false;
+		}
+	}
+	const size_t sz = dp_ptr->idbValues.size();
+	for(int i=0; i < sz; ++i) {
+		const IDBValue& iv = dp_ptr->idbValues[i];
+		for(const std::vector<int>& v : iv.pos) {
+			std::vector<int> Q(v.begin(), v.end());
+			Q.insert(Q.begin(), i);
+
+			auto it = vote_stats.find(Q);
+			if(it == vote_stats.end()) {
+				std::cout << dp_ptr->nice_display(Q) << " is missing by the committee\n";
+				succ = false;
+			}
+		}
+	}
+	return succ;
+}
 
 std::vector<int> QueryEngine::execute_one_round() {
 
@@ -434,6 +459,13 @@ std::vector<int> QueryEngine::execute_one_round() {
 		if( *votes.begin() == total_votes ) {
 
 			std::cout << "only one size of vote: " << *votes.begin() << ", so converged." << std::endl;
+
+			if( validate_with_full_IDBs() ) {
+				std::cout << "validation result: Accept" << std::endl;
+			}
+			else{
+				std::cout << "validation result: Wrong Answer" << std::endl;
+			}
 
 			// converged !!!
 			return std::vector<int>();

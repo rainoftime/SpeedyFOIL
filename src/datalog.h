@@ -160,7 +160,7 @@ struct DPManager {
 
 	std::vector< std::set<int> > get_dependents(const DatalogProgram& prog, int idb_index) const;
 
-	bool ask(std::vector<int>&);
+	bool ask(const std::vector<int>&);
 
 	void test_specialize();
 

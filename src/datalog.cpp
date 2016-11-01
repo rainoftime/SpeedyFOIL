@@ -791,7 +791,7 @@ bool IDBValue::ask_and_update(std::vector<int>& v) {
 	}
 }
 
-bool DPManager::ask(std::vector<int>& Q) {
+bool DPManager::ask(const std::vector<int>& Q) {
 	const int idb_index = Q[0];
 	std::vector<int> tp(Q.begin()+1, Q.end());
 
