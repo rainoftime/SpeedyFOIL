@@ -143,7 +143,7 @@ struct IClause {
 		return *this;
 	}
 
-	std::string toStr() const;
+	std::string toStr(bool withTemplate=true) const;
 	void explain() const;
 
 	std::vector< std::pair<Relation, std::vector<int>> > zip() const;

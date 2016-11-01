@@ -638,14 +638,15 @@ std::vector<ConcreteRule> DPManager::getConcreteRules(const DatalogProgram& dp) 
 }
 
 
-std::string DPManager::str(const DatalogProgram& dp) {
+
+std::string DPManager::str(const DatalogProgram& dp, bool withTemplate) {
 	std::stringstream ss;
 	for(auto pr : dp.state) {
 		int idb_index = pr.first;
 		const IDBTR & idb = idbRules[idb_index];
 
 		for(auto r : pr.second) {
-			ss << idb.rules[r].toStr() << std::endl;
+			ss << idb.rules[r].toStr(withTemplate) << std::endl;
 		}
 	}
 
@@ -727,7 +728,7 @@ std::vector< std::set<int> > DPManager::get_dependents(const DatalogProgram& pro
 }
 
 bool DPManager::hash_and_record(const DatalogProgram& x){
-	std::string s = str(x);
+	std::string s = str(x, false);
 	long long h = str_hash( s );
 	auto it = visited.find(h);
 	if(it == visited.end()) {

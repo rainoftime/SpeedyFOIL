@@ -129,7 +129,7 @@ struct DPManager {
 	//std::vector< std::vector<int> > execute(const DatalogProgram&);
 
 	std::vector<ConcreteRule> getConcreteRules(const DatalogProgram&);
-	std::string str(const DatalogProgram&);
+	std::string str(const DatalogProgram&,bool withTemplate = true);
 
 
 	DPManager(const Matching& match) : M(match) {}

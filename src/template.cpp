@@ -5,6 +5,7 @@
 #include <sstream>
 #include <iostream>
 #include <algorithm>
+#include <iterator>
 
 namespace SpeedyFOIL {
 
@@ -299,20 +300,23 @@ void IClause::explain() const{
 
 }
 
-std::string IClause::toStr() const {
+std::string IClause::toStr(bool withTemplate) const {
 	std::stringstream ss;
 
 	ss << formatTPredicate(tc.hd, cl_hd) << " :- ";
 
 	const size_t n = tc.vbody.size();
+	std::vector<std::string> bs;
 	for(int i=0; i < n; ++i) {
-		if(i) {
-			ss << ",";
-		}
-		ss << formatTPredicate(tc.vbody[i], cl_body[i]);
+		bs.push_back(formatTPredicate(tc.vbody[i], cl_body[i]));
 	}
 
-	ss << "  from template: " << tc.toStr();
+	std::sort(bs.begin(), bs.end());
+	std::copy(bs.begin(), bs.end(), std::ostream_iterator<std::string>(ss, ","));
+
+	if(withTemplate) {
+		ss << "  from template: " << tc.toStr();
+	}
 
 	return ss.str();
 }
