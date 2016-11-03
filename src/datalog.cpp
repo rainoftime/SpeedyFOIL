@@ -324,6 +324,8 @@ std::vector<std::set<int>> IDBTR::chooseK(int k, bool general) const {
 
 
 void DPManager::fillIDBValues() {
+	int query_space = 0;
+	int true_labels = 0;
 
 	for(const IDBTR& x : idbRules){
 		const TRelation& tr = x.rel;
@@ -332,7 +334,9 @@ void DPManager::fillIDBValues() {
 
 		Relation rel = tr.pRel;
 		Tuple* tp = rel->Pos;
+		int ct = 0;
 		while (*tp) {
+			++ct;
 
 			std::vector<int> v;
 			for (int j = 1; j <= rel->Arity; ++j) {
@@ -350,10 +354,33 @@ void DPManager::fillIDBValues() {
 
 		idbValues.push_back(std::move(iv));
 
+		int space = 1;
+		for(int i=1; i <= rel->Arity; ++i) {
+			TypeInfo ti = rel->TypeRef[i];
+			space *= ti->NValues;
+		}
+
+		std::cout << "query_space for " << rel->Name << ": " << space << std::endl;
+		std::cout << "true_label for " << rel->Name << ": " << ct << std::endl;
+		query_space += space;
+		true_labels += ct;
 	}
+
+	std::cout << "overall_query_space: " << query_space << std::endl;
+	std::cout << "overall_true_label: " << true_labels << std::endl;
 }
 
 void DPManager::exploreCandidateRules() {
+	auto calc =[] (int n, int m) {
+		long long res = 1;
+		for(int i=0; i < m; ++i){
+			res = res * (n - i) / (i + 1);
+		}
+		return res;
+	};
+
+	long long naive_search = 1;
+
 	for(const TRelation& rel : M.relm.vIDBRel) {
 
 		std::cout << "Relation: " << rel.getRelNameWithTypes( ) << std::endl;
@@ -361,6 +388,8 @@ void DPManager::exploreCandidateRules() {
 		std::vector<TClause> useful_templates;
 
 		std::vector<IClause> matchings;
+
+		long long sum = 0;
 
 		for(const TClause& tc : candidates) {
 			std::vector<IClause> Ms = M.findMatchingsWithTemplate(rel, tc);
@@ -371,6 +400,8 @@ void DPManager::exploreCandidateRules() {
 				useful_templates.push_back(tc);
 			}
 
+			sum += Ms.size();
+
 			for(IClause& m : Ms) {
 				if(m.is_useless()) {
 					std::cout << "skip useless rule: " << m.toStr() << std::endl;
@@ -379,6 +410,10 @@ void DPManager::exploreCandidateRules() {
 				matchings.push_back( std::move(m) );
 			}
 		}
+
+		long long S = 0;
+		for(int i=1;i<=K;++i) S += calc(sum,i);
+		naive_search *= S;
 
 		TemplateManager tempM;
 		tempM.templates = std::move(useful_templates);
@@ -399,6 +434,7 @@ void DPManager::exploreCandidateRules() {
 		idbRules.push_back( std::move(idb) );
 	}
 
+	std::cout << "naive_search space: " << naive_search << std::endl;
 }
 
 std::vector<DatalogProgram> DPManager::refineProg(const DatalogProgram& prog, bool specialize) {
