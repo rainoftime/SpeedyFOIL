@@ -17,14 +17,29 @@ for f in sys.argv[1:]:
 foil, data_dir, t_dir, log_dir = sys.argv[1:]
 
 
-def worker(cmd):
-    print '>>>>>> ', Green(cmd)
+def worker(foil, common, fout):
+
     #status = 0
-    status = os.system(cmd)
-    if status != 0:
-        print '>>>>>> execution failed for %d-th iteration, status=%d, cmd= %s ' % (i, status, Yellow(cmd) )
-    else:
-        print '>>>> Finished %d-th iteration for %s' % (i, Green(name))
+
+    # cmd = "%s  %s  > %s" % (foil, common, fout)
+    # print '>>>>>> ', Green(cmd)
+
+    # status = os.system(cmd)
+    # if status != 0:
+    #     print '>>>>>> execution failed  status=%d, cmd= %s ' % ( status, Yellow(cmd) )
+    # else:
+    #     print '>>>> Finished for %s' % Green(name)
+
+    for i in xrange(100):
+        cmd = "%s -R -y %d  %s > %s " % (foil, i, common, fout + ".r%d" % i)
+        print '>>>>>> ', Green(cmd)
+
+        status = os.system(cmd)
+        if status != 0:
+            print '>>>>>> execution failed at %d-th iteration, status=%d, cmd= %s ' % (i, status, Yellow(cmd) )
+        else:
+            print '>>>> Finished for %d-th iteration %s' % (i, Green(name))
+
 
 
 jobs = []
@@ -41,8 +56,10 @@ for i in xrange(10):
 
     check_exist_err(fin)
 
-    cmd = "%s -B andersen -G -K 4 -T %s < %s > %s" % (foil, tmpl, fin, fout )
-    jb = multiprocessing.Process(target = worker, args=(cmd,) )
+
+    comm =  " -B andersen -G -K 4 -T %s < %s " % (tmpl, fin)
+    #cmd = "%s -B andersen -G -K 4 -T %s < %s > %s" % (foil, tmpl, fin, fout )
+    jb = multiprocessing.Process(target = worker, args=(foil, comm, fout) )
     jobs.append(jb)
 
 
