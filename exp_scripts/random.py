@@ -26,11 +26,10 @@ def worker(foil,name, MODE, bench, tmpl, fin, fout):
     if M in bench:
         m = bench[M]
 
-    for i in xrange(100):
+    for i in xrange(100,200):
         print '>>>> START %d-th iteration for %s' % (i, Green(name) )
         cmd =  "%s -R -B %s %s -y %d -K %d -M %d  -T %s < %s > %s" % (foil, name, MODE, i, k, m, tmpl, fin, fout + ('.%d' % i) )
         print '>>>>>> ', Green(cmd)
-        return
 
         #status = 0
         status = os.system(cmd)
@@ -53,7 +52,7 @@ for name in tasks:
     check_exist_err(fin)
 
     #cmd =  "%s -B %s %s -K %d  -T %s < %s > %s" % (foil, name, MODE, bench[K], tmpl, fin, fout )
-    jb = multiprocessing.Process(target = worker, args=(foil,name, MODE, bench, tmpl, fin, fout,) )
+    jb = multiprocessing.Process(name = "SpeedyFOIL-r:" + name, target = worker, args=(foil,name, MODE, bench, tmpl, fin, fout,) )
     jobs.append(jb)
 
 
