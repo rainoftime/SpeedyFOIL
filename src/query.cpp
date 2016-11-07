@@ -576,11 +576,42 @@ void QueryEngine::eliminate_and_refine(std::vector<DatalogProgram>& A,
 					edges[x_id].insert(std::make_pair(L, y.prog_id));
 #endif
 
-					if (test(y, pos_qs) && !test(y, neg_qs)) {
-						dps.push_back(std::move(y));
-					} else {
-						Queue.push(std::move(y));
+					const bool contain_pos = test(y, pos_qs);
+					const bool contain_neg = test(y, neg_qs);
+
+					if(positive) {
+						// positive example, we now generalize specific program
+						if(contain_neg) {
+							// ignore
+						}
+						else if(contain_pos) {
+							// get expected generalization
+							dps.push_back(std::move(y));
+						}
+						else {
+							// keep refining
+							Queue.push(std::move(y));
+						}
 					}
+					else {
+						// negative example, we now specialize
+						if(contain_pos){
+							if(contain_neg) {
+								// keep refining
+								Queue.push( std::move(y) );
+							}
+							else {
+								// get expected generalization
+								dps.push_back(std::move(y));
+							}
+						}
+					}
+
+					//if (test(y, pos_qs) && !test(y, neg_qs)) {
+					//	dps.push_back(std::move(y));
+					//} else {
+					//	Queue.push(std::move(y));
+					//}
 				}
 			}
 
