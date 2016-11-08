@@ -247,16 +247,9 @@ FixedPoint QueryEngine::prepare(const DatalogProgram & dp) {
 	return fp;
 }
 
-void QueryEngine::execute(const DatalogProgram& dp) {
-	//std::set<std::pair<Relation, std::vector<int>>> queries;
+bool QueryEngine::execute(const DatalogProgram& dp) {
 
-	// here we ignore variable correspondence, e.g. A(x,x), B(x,y,x)
-	// atually, we should, otherwise we might vote multiple times
-	// if there are multiple rules that could derive the sample tuple
-	std::set< Relation > queries;
-	for(const IDBTR& idb : dp_ptr->idbRules) {
-		queries.insert( idb.rel.pRel );
-	}
+	bool status = true;
 
 	FixedPoint fp = prepare(dp);
 	const int before = warn_ct;
@@ -266,7 +259,11 @@ void QueryEngine::execute(const DatalogProgram& dp) {
 		fail_to_derive.insert( dp.prog_id );
 		//std::cout << "will cancel vote for program: \n" << dp_ptr->str(dp) << std::endl;
 		queryIDBs(fp, true);
+
+		status = false;
 	}
+
+	return status;
 }
 
 z3::expr QueryEngine::convert_question(std::vector<int>& Q){
@@ -397,7 +394,7 @@ bool QueryEngine::validate_with_full_IDBs() {
 std::vector<int> QueryEngine::execute_one_round() {
 
 	fail_to_derive.clear();
-	vote_stats.clear();
+	//vote_stats.clear();
 	warn_ct = 0;
 
 #ifdef LOG_REFINEMENT_LAYER_GRAPH
@@ -407,8 +404,8 @@ std::vector<int> QueryEngine::execute_one_round() {
 #endif
 
 
-	execute_one_round_helper(dp_ptr->Gs);
-	execute_one_round_helper(dp_ptr->Ss);
+	//execute_one_round_helper(dp_ptr->Gs);
+	//execute_one_round_helper(dp_ptr->Ss);
 
 
 	//std::cout << "warn_ct = " << warn_ct << std::endl;
@@ -515,6 +512,10 @@ void QueryEngine::eliminate_and_refine(std::vector<DatalogProgram>& A,
 		} else {
 			++remove_ct;
 
+			// cancel vote
+			FixedPoint fp = prepare(x);
+			queryIDBs(fp, true);
+
 			//std::string s = dp_ptr->str(x);
 			//long long h = str_hash(s);
 			//removedPrograms[h].insert(s);
@@ -546,6 +547,11 @@ void QueryEngine::eliminate_and_refine(std::vector<DatalogProgram>& A,
 		if (test(x, pos_qs) && ! test(x,neg_qs) ) {
 			dps.push_back(std::move(x));
 		} else {
+
+			// cancel vote
+			FixedPoint fp = prepare(x);
+			queryIDBs(fp, true);
+
 
 			//std::cout <<"positive=" << positive << ", going to refine \n" << dp_ptr->str(x);
 			//std::cout << "before: refine_ct = " << refine_ct << std::endl;
@@ -585,8 +591,12 @@ void QueryEngine::eliminate_and_refine(std::vector<DatalogProgram>& A,
 							// ignore
 						}
 						else if(contain_pos) {
-							// get expected generalization
-							dps.push_back(std::move(y));
+							// vote for the first time
+							if(execute(y)) {
+								// get expected generalization
+								dps.push_back(std::move(y));
+							}
+
 						}
 						else {
 							// keep refining
@@ -601,8 +611,11 @@ void QueryEngine::eliminate_and_refine(std::vector<DatalogProgram>& A,
 								Queue.push( std::move(y) );
 							}
 							else {
-								// get expected generalization
-								dps.push_back(std::move(y));
+								// vote for the first time
+								if(execute(y)) {
+									// get expected generalization
+									dps.push_back(std::move(y));
+								}
 							}
 						}
 					}
@@ -634,6 +647,12 @@ void QueryEngine::work() {
 
 	//std::cout << "\n\nwill initGS ... \n";
 	dp_ptr->initGS();
+
+	// Now we use the "at most twice" mechanism
+	// execute only once at the beginning
+	execute_one_round_helper(dp_ptr->Gs);
+	execute_one_round_helper(dp_ptr->Ss);
+
 
 
 	z3::expr_vector and_pos_vec(cm_ptr->C);

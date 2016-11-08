@@ -104,7 +104,7 @@ struct QueryEngine {
 
 	FixedPoint prepare(const DatalogProgram & dp);
 
-	void execute(const DatalogProgram & dp);
+	bool execute(const DatalogProgram & dp);
 	//z3::expr construct_query(const std::pair<Relation, std::vector<int>>& Q);
 	//void queryIDBs(std::set<std::pair<Relation, std::vector<int>>>& queries, FixedPoint& fp, bool=false);
 	z3::expr construct_query(Relation);
