@@ -186,7 +186,7 @@ void QueryEngine::queryIDBs(FixedPoint& fp, bool cancelVote) {
 		Relation rel = dp_ptr->idbRules[ idb_index ].rel.pRel;
 		if ( fp.query( construct_query(rel) ) ){
 			z3::expr detailed_res = fp.get_answer();
-			parse_and_update(detailed_res, idb_index);
+			parse_and_update(detailed_res, idb_index, cancelVote);
 		}
 		else {
 			if(!cancelVote){
@@ -368,6 +368,9 @@ void QueryEngine::execute_one_round_helper(std::vector<DatalogProgram>& progs) {
 bool QueryEngine::validate_with_full_IDBs() {
 	bool succ = true;
 	for (auto pr : vote_stats) {
+      if(pr.second == 0) {
+        continue;
+      }
 		const std::vector<int>& Q = pr.first;
 		if(! dp_ptr->ask(Q)){
 			std::cout << dp_ptr->nice_display(Q) << " is predicated to be true, but actually false\n";
@@ -382,7 +385,7 @@ bool QueryEngine::validate_with_full_IDBs() {
 			Q.insert(Q.begin(), i);
 
 			auto it = vote_stats.find(Q);
-			if(it == vote_stats.end()) {
+			if(it == vote_stats.end() || it->second == 0) {
 				std::cout << dp_ptr->nice_display(Q) << " is missing by the committee\n";
 				succ = false;
 			}
@@ -408,12 +411,12 @@ std::vector<int> QueryEngine::execute_one_round() {
 	//execute_one_round_helper(dp_ptr->Ss);
 
 
-	//std::cout << "warn_ct = " << warn_ct << std::endl;
-	//std::cout << "\ntuple stats: \n";
-	//for (auto pr : vote_stats) {
-	//	std::cout << pr.second << " votes for "
-	//			<< dp_ptr->nice_display(pr.first) << std::endl;
-	//}
+	std::cout << "warn_ct = " << warn_ct << std::endl;
+	std::cout << "\ntuple stats: \n";
+	for (auto pr : vote_stats) {
+		std::cout << pr.second << " votes for "
+				<< dp_ptr->nice_display(pr.first) << std::endl;
+	}
 
 
 	const int total_votes = (int) (dp_ptr->Gs.size() + dp_ptr->Ss.size());
@@ -429,6 +432,10 @@ std::vector<int> QueryEngine::execute_one_round() {
 	std::set<int> votes;
 	std::vector<int> question;
 	for (auto pr : vote_stats) {
+      if(pr.second == 0) {
+        continue;
+      }
+      
 		votes.insert(pr.second);
 
 		int dis = pr.second - ideal;
