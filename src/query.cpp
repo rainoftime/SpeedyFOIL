@@ -303,7 +303,7 @@ bool QueryEngine::test(const DatalogProgram& dp, z3::expr Q) {
 	return fp.query( Q );
 }
 
-bool QueryEngine::test_converge() {
+bool QueryEngine::test_converge_old() {
 	vote_stats.clear();
 	int ct = 0;
 	std::vector<const DatalogProgram*> vp;
@@ -330,11 +330,11 @@ bool QueryEngine::test_converge() {
 
 	return true;
 }
-std::vector<int> QueryEngine::random_pick(){
+std::vector<int> QueryEngine::random_pick_old(){
 	std::vector<int> res;
 
 	// test converge
-	if( test_converge() ) {
+	if( test_converge_old() ) {
 		return res;
 	}
 
@@ -350,6 +350,49 @@ std::vector<int> QueryEngine::random_pick(){
 			res = idb.rel.getKthTuple(K);
 			res.insert(res.begin(), idb_index);
 		}
+	}
+
+
+
+	return res;
+}
+
+bool QueryEngine::test_converge() {
+	int ct = -1;
+
+	for(const auto & it : vote_stats ) {
+		if(it.second.empty()) {
+			continue;
+		}
+		if(ct == -1){
+			ct = it.second.size();
+		}
+		if(ct != it.second.size()){
+			return false;
+		}
+	}
+	return true;
+}
+
+std::vector<int> QueryEngine::random_pick(){
+	std::vector<int> res;
+	std::vector< std::vector<int> > pool;
+
+	// test converge
+	if( test_converge() ) {
+		return res;
+	}
+
+	for(const auto & it : vote_stats ) {
+		if(it.second.empty()) {
+			continue;
+		}
+		pool.push_back(it.first);
+	}
+
+	if(pool.size()) {
+		const int index = std::rand() % pool.size();
+		return pool[index];
 	}
 
 	return res;

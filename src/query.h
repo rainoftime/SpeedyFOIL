@@ -109,8 +109,13 @@ struct QueryEngine {
 
 	void execute_one_round_helper(std::vector<DatalogProgram>&);
 	std::vector<int> execute_one_round();
+
+	std::vector<int> random_pick_old();
+	bool test_converge_old();
+
 	std::vector<int> random_pick();
 	bool test_converge();
+
 
 	//FixedPoint prepare(const DatalogProgram & dp,
 	//		std::set<std::pair<Relation, std::vector<int>>>&queries);
