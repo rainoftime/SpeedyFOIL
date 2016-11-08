@@ -819,6 +819,10 @@ bool DPManager::total_rules_too_large(const DatalogProgram& dp) const {
 
 
 bool DPManager::pass_filters(const DatalogProgram& dp) {
+	if(enableX) {
+		return true;
+	}
+
 	if(! can_derive_something(dp)) {
 		// if we cannot derive anything for some idb, skip
 		//std::cout << "ignore: fail to derive certain idb\n" << str(dp) << std::endl;

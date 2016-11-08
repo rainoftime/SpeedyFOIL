@@ -1006,8 +1006,11 @@ void QueryEngine::work_baseline() {
 void QueryEngine::work() {
 
 	std::chrono::steady_clock::time_point s1 = std::chrono::steady_clock::now();
-	//std::cout << "will examine IDBTRs ...\n";
-	dp_ptr->examine_each_IDBTR(this);
+
+	if(dp_ptr->enableG || dp_ptr->enableS){
+		//std::cout << "will examine IDBTRs ...\n";
+		dp_ptr->examine_each_IDBTR(this);
+	}
 
 	//std::cout << "\n\nwill initGS ... \n";
 	dp_ptr->initGSX();
