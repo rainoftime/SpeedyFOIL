@@ -411,12 +411,12 @@ std::vector<int> QueryEngine::execute_one_round() {
 	//execute_one_round_helper(dp_ptr->Ss);
 
 
-	std::cout << "warn_ct = " << warn_ct << std::endl;
-	std::cout << "\ntuple stats: \n";
-	for (auto pr : vote_stats) {
-		std::cout << pr.second << " votes for "
-				<< dp_ptr->nice_display(pr.first) << std::endl;
-	}
+	//std::cout << "warn_ct = " << warn_ct << std::endl;
+	//std::cout << "\ntuple stats: \n";
+	//for (auto pr : vote_stats) {
+	//	std::cout << pr.second << " votes for "
+	//			<< dp_ptr->nice_display(pr.first) << std::endl;
+	//}
 
 
 	const int total_votes = (int) (dp_ptr->Gs.size() + dp_ptr->Ss.size());
@@ -649,11 +649,14 @@ void QueryEngine::eliminate_and_refine(std::vector<DatalogProgram>& A,
 
 void QueryEngine::work() {
 
+	std::chrono::steady_clock::time_point s1 = std::chrono::steady_clock::now();
 	//std::cout << "will examine IDBTRs ...\n";
 	dp_ptr->examine_each_IDBTR(this);
 
 	//std::cout << "\n\nwill initGS ... \n";
 	dp_ptr->initGS();
+
+	std::chrono::steady_clock::time_point s2 = std::chrono::steady_clock::now();
 
 	// Now we use the "at most twice" mechanism
 	// execute only once at the beginning
@@ -766,6 +769,16 @@ void QueryEngine::work() {
 		greens.insert(x.prog_id);
 		std::cout << "\n\n" << dp_ptr->str(x);
 	}
+
+	std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+
+    std::cout << "end-s2: "
+              << std::chrono::duration_cast<std::chrono::milliseconds>(end - s2).count()
+              << " ms.\n";
+
+	std::cout << "end-s1: "
+              << std::chrono::duration_cast<std::chrono::milliseconds>(end - s1).count()
+              << " ms.\n";
 
 
 #ifdef LOG_REFINEMENT_LAYER_GRAPH
