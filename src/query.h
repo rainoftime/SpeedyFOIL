@@ -20,13 +20,20 @@ struct FixedPoint{
 	z3::context * pContext;
 	z3::symbol defaultS;
 	Z3_lbool recent;
+	int prog_id;
 
 	FixedPoint(ContextManager* pCM);
 
 	FixedPoint(const FixedPoint&) = delete;
 
-	FixedPoint(FixedPoint&& fp) noexcept : pContext(fp.pContext), z3_fp(fp.z3_fp), recent(fp.recent), defaultS(fp.defaultS) {
+	FixedPoint(FixedPoint&& fp) noexcept :
+			pContext(fp.pContext),
+			z3_fp(fp.z3_fp),
+			recent(fp.recent),
+			defaultS(fp.defaultS),
+			prog_id(fp.prog_id){
 		fp.pContext = nullptr;
+		fp.prog_id = -1;
 	}
 
 	FixedPoint& operator = (FixedPoint& fp) = delete;
@@ -38,10 +45,15 @@ struct FixedPoint{
 		pContext = fp.pContext;
 		z3_fp = fp.z3_fp;
 		recent = fp.recent;
+		prog_id = fp.prog_id;
 
 		fp.pContext = nullptr;
+		fp.prog_id = -1;
+
 		return *this;
 	}
+
+	void set_prog_id(int id) {prog_id = id;}
 
 	void add_rules(std::vector<z3::expr>& rules);
 
@@ -76,7 +88,8 @@ struct QueryEngine {
 	std::hash<std::string> str_hash;
 	std::map<long long, std::set<std::string> > removedPrograms;
 
-	std::map<std::vector<int>, int> vote_stats;
+	//std::map<std::vector<int>, int> vote_stats;
+	std::map<std::vector<int>, std::set<int> > vote_stats;
 
 	std::set<int> fail_to_derive;
 
@@ -104,14 +117,14 @@ struct QueryEngine {
 
 	FixedPoint prepare(const DatalogProgram & dp);
 
-	void execute(const DatalogProgram & dp);
+	bool execute(const DatalogProgram & dp);
 	//z3::expr construct_query(const std::pair<Relation, std::vector<int>>& Q);
 	//void queryIDBs(std::set<std::pair<Relation, std::vector<int>>>& queries, FixedPoint& fp, bool=false);
 	z3::expr construct_query(Relation);
 	void queryIDBs(FixedPoint& fp, bool=false);
 	bool validate_with_full_IDBs();
 
-	void parse_and_update(z3::expr&, int, bool=false);
+	void parse_and_update(z3::expr&, int, int, bool=false);
 
 	bool test(const DatalogProgram&, z3::expr);
 
@@ -119,6 +132,15 @@ struct QueryEngine {
 
 	void eliminate_and_refine(std::vector<DatalogProgram>& A, std::vector<DatalogProgram>& B, bool,
 			z3::expr&, z3::expr&, std::vector<int>& );
+
+	bool test2(const DatalogProgram&, const std::vector<int>&);
+	std::pair<bool,bool> test3(DatalogProgram&, bool, std::vector<int>&, std::vector<std::vector<int> >&);
+
+
+	void eliminate_and_refine2(std::vector<DatalogProgram>& A,
+			std::vector<DatalogProgram>& B, bool, std::vector<int>&,
+			std::vector<std::vector<int> >&);
+
 	void work();
 
 };
