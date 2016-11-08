@@ -66,6 +66,9 @@ FixedPoint::FixedPoint(ContextManager* pCM) : pContext(&(pCM->C)), defaultS(pCon
 	}
 
 	pCM->appendEDBConstr(z3_fp);
+
+	prog_id = -1;
+
 }
 
 void FixedPoint::add_rules(std::vector<z3::expr>& rules) {
@@ -125,7 +128,7 @@ z3::expr QueryEngine::build_func_constr(z3::context& context,
 	return f(params);
 }
 
-void QueryEngine::parse_and_update(z3::expr& E, int idx, bool cancelVote) {
+void QueryEngine::parse_and_update(z3::expr& E, int idx, int prog_id, bool cancelVote) {
 	//std::cout << "parse_and_update, E=" << E << std::endl;
 	std::string app_name = E.decl().name().str();
 	if (app_name == "or") {
@@ -137,10 +140,12 @@ void QueryEngine::parse_and_update(z3::expr& E, int idx, bool cancelVote) {
 			// prepend idx
 			tp.insert(tp.begin(), idx);
 			if(cancelVote){
-				--vote_stats[tp];
+				//--vote_stats[tp];
+				vote_stats[tp].erase(prog_id);
 			}
 			else{
-				++vote_stats[tp];
+				//++vote_stats[tp];
+				vote_stats[tp].insert(prog_id);
 			}
 
 			//std::cout <<"tp: ";
@@ -151,10 +156,12 @@ void QueryEngine::parse_and_update(z3::expr& E, int idx, bool cancelVote) {
 		std::vector<int> tp = extract_bv_values(E);
 		tp.insert(tp.begin(), idx);
 		if(cancelVote){
-			--vote_stats[tp];
+			//--vote_stats[tp];
+			vote_stats[tp].erase(prog_id);
 		}
 		else{
-			++vote_stats[tp];
+			//++vote_stats[tp];
+			vote_stats[tp].insert(prog_id);
 		}
 	} else {
 		std::cerr << "unknown application name: " << app_name << std::endl;
@@ -186,7 +193,7 @@ void QueryEngine::queryIDBs(FixedPoint& fp, bool cancelVote) {
 		Relation rel = dp_ptr->idbRules[ idb_index ].rel.pRel;
 		if ( fp.query( construct_query(rel) ) ){
 			z3::expr detailed_res = fp.get_answer();
-			parse_and_update(detailed_res, idb_index, cancelVote);
+			parse_and_update(detailed_res, idb_index, fp.prog_id, cancelVote);
 		}
 		else {
 			if(!cancelVote){
@@ -243,12 +250,15 @@ FixedPoint QueryEngine::prepare(const DatalogProgram & dp) {
 
 	FixedPoint fp(cm_ptr);
 	fp.add_rules(z3_rs);
+	fp.set_prog_id(dp.prog_id);
 
 	return fp;
 }
 
 bool QueryEngine::execute(const DatalogProgram& dp) {
 
+    //std::cout << "execute, prog_id = " << dp.prog_id << std::endl;
+  
 	bool status = true;
 
 	FixedPoint fp = prepare(dp);
@@ -309,7 +319,10 @@ bool QueryEngine::test_converge() {
 		execute(*p);
 
 		for(auto pr : vote_stats) {
-			if(pr.second != ct){
+			if(pr.second.empty()) {
+				continue;
+			}
+			if(pr.second.size() != ct){
 				return false;
 			}
 		}
@@ -368,7 +381,7 @@ void QueryEngine::execute_one_round_helper(std::vector<DatalogProgram>& progs) {
 bool QueryEngine::validate_with_full_IDBs() {
 	bool succ = true;
 	for (auto pr : vote_stats) {
-      if(pr.second == 0) {
+      if(pr.second.empty() ) {
         continue;
       }
 		const std::vector<int>& Q = pr.first;
@@ -385,7 +398,7 @@ bool QueryEngine::validate_with_full_IDBs() {
 			Q.insert(Q.begin(), i);
 
 			auto it = vote_stats.find(Q);
-			if(it == vote_stats.end() || it->second == 0) {
+			if(it == vote_stats.end() || it->second.empty()) {
 				std::cout << dp_ptr->nice_display(Q) << " is missing by the committee\n";
 				succ = false;
 			}
@@ -414,8 +427,10 @@ std::vector<int> QueryEngine::execute_one_round() {
 	//std::cout << "warn_ct = " << warn_ct << std::endl;
 	//std::cout << "\ntuple stats: \n";
 	//for (auto pr : vote_stats) {
-	//	std::cout << pr.second << " votes for "
+	//	std::cout << pr.second.size() << " votes for "
 	//			<< dp_ptr->nice_display(pr.first) << std::endl;
+    //  std::copy(pr.second.begin(), pr.second.end(), std::ostream_iterator<int>(std::cout, ","));
+    //  std::cout << std::endl;
 	//}
 
 
@@ -432,13 +447,13 @@ std::vector<int> QueryEngine::execute_one_round() {
 	std::set<int> votes;
 	std::vector<int> question;
 	for (auto pr : vote_stats) {
-      if(pr.second == 0) {
+      if(pr.second.empty()) {
         continue;
       }
       
-		votes.insert(pr.second);
+		votes.insert(pr.second.size());
 
-		int dis = pr.second - ideal;
+		int dis = pr.second.size() - ideal;
 		if(dis < 0) dis =-dis;
 
 		//order.push_back( std::make_pair(dis, index) );
@@ -501,6 +516,152 @@ std::vector<int> QueryEngine::execute_one_round() {
 
 	return question;
 }
+
+
+bool QueryEngine::test2(const DatalogProgram& dp, const std::vector<int>& Q) {
+	auto it = vote_stats.find(Q);
+	if(it == vote_stats.end() || it->second.find(dp.prog_id) == it->second.end()) {
+		return false;
+	}
+	return true;
+}
+
+std::pair<bool,bool> QueryEngine::test3(DatalogProgram& x, bool positive, std::vector<int>& Q, std::vector<std::vector<int> >& Qs) {
+	bool contain_pos = true;
+	bool contain_neg = false;
+	if(positive) {
+		contain_pos = test2(x, Q);
+		if (contain_pos) {
+			for (std::vector<int>& vi : Qs) {
+				if (test2(x, vi)) {
+					contain_neg = true;
+					break;
+				}
+			}
+		}
+	}
+	else{
+		contain_neg = test2(x, Q);
+		if(!contain_neg) {
+			for (std::vector<int>& vi : Qs) {
+				if (!test2(x, vi)) {
+					contain_pos = false;
+					break;
+				}
+			}
+		}
+	}
+
+	return std::make_pair(contain_pos, contain_neg);
+}
+
+void QueryEngine::eliminate_and_refine2(std::vector<DatalogProgram>& A,
+		std::vector<DatalogProgram>& B, bool positive,
+		std::vector<int>& Q, std::vector<std::vector<int> >& Qs) {
+
+	std::vector<DatalogProgram> dps;
+	int remove_ct = 0;
+
+	for (DatalogProgram& x : A) {
+		auto res = test3(x, positive, Q, Qs);
+		if (res.first && ! res.second) {
+			dps.push_back(std::move(x));
+		} else {
+			++remove_ct;
+
+			// cancel vote
+			for(auto& it : vote_stats) {
+				it.second.erase( x.prog_id );
+			}
+		}
+	}
+
+	A = std::move(dps);
+
+	int refine_ct = 0;
+	for (DatalogProgram& x : B) {
+		auto res = test3(x, positive, Q, Qs);
+		if (res.first && ! res.second) {
+			dps.push_back(std::move(x));
+		}
+		else{
+			// cancel vote
+			for(auto& it : vote_stats) {
+				it.second.erase( x.prog_id );
+			}
+
+			std::queue<DatalogProgram> Queue;
+			Queue.push(std::move(x));
+
+			while (!Queue.empty()) {
+				++refine_ct;
+				DatalogProgram p ( std::move(Queue.front() ));
+				Queue.pop();
+
+				bool specialize = !positive;
+				std::vector<DatalogProgram> vs = dp_ptr->refineProgWithTarget(p,
+						specialize, Q[0]);
+				for (DatalogProgram& y : vs) {
+
+					//try to vote
+					if(!execute(y)) {
+						continue;
+					}
+
+					auto res = test3(y, positive, Q, Qs);
+					if(positive) {
+						if(res.second) {
+							// ignore, cancel vote
+							for(auto& it : vote_stats) {
+								it.second.erase( y.prog_id );
+							}
+
+						}
+						else if(res.first) {
+							dps.push_back(std::move(y));
+						}
+						else{
+							// cancel vote, keep refining
+							for(auto& it : vote_stats) {
+								it.second.erase( y.prog_id );
+							}
+
+							Queue.push(std::move(y));
+						}
+					}
+					else{
+						if(res.first) {
+							if(res.second){
+								// cancel vote, keep refining
+								for(auto& it : vote_stats) {
+									it.second.erase( y.prog_id );
+								}
+
+								Queue.push(std::move(y));
+							}
+							else{
+								dps.push_back(std::move(y));
+							}
+						}
+						else{
+							// ignore, cancel vote
+							for(auto& it : vote_stats) {
+								it.second.erase( y.prog_id );
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	B = std::move(dps);
+
+	std::cout << "removed_ct=" << remove_ct << ", refine_ct = " << refine_ct
+			<< ", size: " << dp_ptr->Gs.size() << std::endl;
+
+}
+
 
 void QueryEngine::eliminate_and_refine(std::vector<DatalogProgram>& A,
 		std::vector<DatalogProgram>& B, bool positive, z3::expr& pos_qs, z3::expr& neg_qs,
@@ -668,6 +829,10 @@ void QueryEngine::work() {
 	z3::expr_vector and_pos_vec(cm_ptr->C);
 	z3::expr_vector or_neg_vec (cm_ptr->C);
 
+	std::vector<std::vector<int>> pos_Qs;
+	std::vector<std::vector<int>> neg_Qs;
+
+
 	and_pos_vec.push_back( cm_ptr->C.bool_val(true) );
 	or_neg_vec.push_back( cm_ptr->C.bool_val(false) );
 
@@ -702,6 +867,8 @@ void QueryEngine::work() {
 
 		if (positive) {
 
+			pos_Qs.push_back(Q);
+
 			z3::expr q = convert_question(Q);
 			and_pos_vec.push_back(q);
 			z3::expr and_qs = z3::mk_and(and_pos_vec);
@@ -713,13 +880,15 @@ void QueryEngine::work() {
 					<< dp_ptr->Gs.size() << ", Ss.size= " << dp_ptr->Ss.size()
 					<< std::endl;
 
-			eliminate_and_refine( dp_ptr->Gs, dp_ptr->Ss, true, and_qs, or_qs, Q);
+			//eliminate_and_refine( dp_ptr->Gs, dp_ptr->Ss, true, and_qs, or_qs, Q);
+			eliminate_and_refine2(dp_ptr->Ss, dp_ptr->Gs, true, Q, neg_Qs);
 
 			std::cout << "after elimination & refinement, Gs.size= "
 					<< dp_ptr->Gs.size() << ", Ss.size= " << dp_ptr->Ss.size()
 					<< std::endl;
 
 		} else {
+			neg_Qs.push_back(Q);
 
 			z3::expr q = convert_question(Q);
 			or_neg_vec.push_back(q);
@@ -733,7 +902,8 @@ void QueryEngine::work() {
 					<< std::endl;
 
 
-			eliminate_and_refine( dp_ptr->Ss, dp_ptr->Gs, false, and_qs, or_qs, Q);
+			//eliminate_and_refine( dp_ptr->Ss, dp_ptr->Gs, false, and_qs, or_qs, Q);
+			eliminate_and_refine2(dp_ptr->Ss, dp_ptr->Gs, false, Q, pos_Qs);
 
 			std::cout << "after elimination & refinement, Gs.size= "
 					<< dp_ptr->Gs.size() << ", Ss.size= " << dp_ptr->Ss.size()
