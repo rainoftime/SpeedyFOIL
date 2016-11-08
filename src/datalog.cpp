@@ -298,7 +298,7 @@ std::set<int> IDBTR::specialize(int rule_index) const{
 }
 
 
-std::vector<std::set<int>> IDBTR::chooseK(int k, bool general) const {
+std::vector<std::set<int>> IDBTR::chooseK(int k, ChooseOption option) const {
 	if(k > 5) {
 		std::vector<std::set<int>> res;
 		std::cerr << "K might be too large: " << k << std::endl;
@@ -307,11 +307,23 @@ std::vector<std::set<int>> IDBTR::chooseK(int k, bool general) const {
 
 	std::set<int> st;
 
-	if(general) {
+	if(GENERAL == option) {
 		st = extractRules( tm.getMostGeneral() );
 	}
-	else{
+	else if(SPECIFIC == option){
 		st = extractRules( tm.getMostSpecific() );
+	}
+	else if(ALL == option){
+		const int sz = tm.templates.size();
+		std::set<int> tmpls;
+		for(int i=0;i < sz; ++i) {
+			tmpls.insert(i);
+		}
+
+		st = extractRules(tmpls);
+	}
+	else{
+		std::cout <<"Error(IDBTR::chooseK) unknown option "<< option << std::endl;
 	}
 
 	std::cout << "chooseK in " << rel.getRelNameWithTypes() << std::endl;
@@ -589,14 +601,14 @@ std::set<int> DPManager::backwardAnalysis(const DatalogProgram& prog, int idb_in
 
 
 
-void DPManager::init_helper(bool general) {
+void DPManager::init_helper(ChooseOption option) {
 	std::vector< std::vector< std::set<int> > > VVS;
 
 	long long space = 1;
 	const size_t sz = idbRules.size();
 	for(int i=0; i<sz; ++i) {
 		const IDBTR& idb = idbRules[i];
-		std::vector<std::set<int>>  vst = idb.chooseK(K, general);
+		std::vector<std::set<int>>  vst = idb.chooseK(K, option);
 
 		auto it = vst.begin();
 		while(it != vst.end()){
@@ -632,29 +644,40 @@ void DPManager::init_helper(bool general) {
 			continue;
 		}
 
-		if(general) {
+		if(GENERAL == option) {
 			//Gs.insert(std::move(dp));
 			Gs.push_back( std::move(dp) );
 		}
-		else{
+		else if(SPECIFIC == option){
 			//Ss.insert(std::move(dp));
 			Ss.push_back( std::move(dp) );
+		}
+		else if(ALL == option) {
+			// use Gs for baseline data
+			Gs.push_back( std::move(dp) );
+		}
+		else {
+			std::cout << "Error (init_helper): unknown option: " << option << std::endl;
 		}
 	}
 
 }
 
-void DPManager::initGS() {
+void DPManager::initGSX() {
 	if(enableG){
-		init_helper(true);
+		init_helper(GENERAL);
 		std::cout << "Gs.size = " << Gs.size() << std::endl;
 	}
 
 	if(enableS) {
-		init_helper(false);
+		init_helper(SPECIFIC);
 		std::cout << "Ss.size = " << Ss.size() << std::endl;
 	}
 
+	if(enableX) {
+		init_helper(ALL);
+		std::cout << "Gs.size = " << Gs.size() << std::endl;
+	}
 	//execute( *Gs.begin() );
 }
 

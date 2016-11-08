@@ -144,7 +144,7 @@ int main(int Argc, char *Argv[])
 
 	/*  Process options  */
 
-	while ((o = getopt(Argc, Argv, "GSRpnNus:a:f:g:V:d:A:w:l:t:m:v:y:T:K:B:M:")) != EOF) {
+	while ((o = getopt(Argc, Argv, "GSXRpnNus:a:f:g:V:d:A:w:l:t:m:v:y:T:K:B:M:")) != EOF) {
 		if (FirstTime) {
 			printf("\n    Options:\n");
 			FirstTime = false;
@@ -160,6 +160,9 @@ int main(int Argc, char *Argv[])
 			break;
 		case 'S':
 			DP.enableS = true;
+			break;
+		case 'X':
+			DP.enableX = true;
 			break;
 		case 'n':
 			NEGLITERALS = NEGEQUALS = false;
@@ -287,11 +290,21 @@ int main(int Argc, char *Argv[])
 		std::cout << "Bottom-up is enabled\n";
 	}
 
+	if(DP.enableX) {
+		std::cout << "X(baseline) is enabled\n";
+	}
+
 	if(QE.random_mode) {
 		std::cout << "Using Random selection\n";
 	}
 
-	if(DP.enableG == false && DP.enableS == false) {
+	if(DP.enableX) {
+		if(DP.enableG || DP.enableS) {
+			std::cerr << "when X is enabled, G or S should not be enabled." << std::endl;
+			return 0;
+		}
+	}
+	else if(DP.enableG == false && DP.enableS == false) {
 		std::cerr << "Should enable at least one of: Top-down(G), Bottom-up(S)" << std::endl;
 		return 0;
 	}

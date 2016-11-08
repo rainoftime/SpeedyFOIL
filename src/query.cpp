@@ -808,22 +808,7 @@ void QueryEngine::eliminate_and_refine(std::vector<DatalogProgram>& A,
 
 }
 
-void QueryEngine::work() {
-
-	std::chrono::steady_clock::time_point s1 = std::chrono::steady_clock::now();
-	//std::cout << "will examine IDBTRs ...\n";
-	dp_ptr->examine_each_IDBTR(this);
-
-	//std::cout << "\n\nwill initGS ... \n";
-	dp_ptr->initGS();
-
-	std::chrono::steady_clock::time_point s2 = std::chrono::steady_clock::now();
-
-	// Now we use the "at most twice" mechanism
-	// execute only once at the beginning
-	execute_one_round_helper(dp_ptr->Gs);
-	execute_one_round_helper(dp_ptr->Ss);
-
+void QueryEngine::work_refinement() {
 
 
 	z3::expr_vector and_pos_vec(cm_ptr->C);
@@ -940,6 +925,108 @@ void QueryEngine::work() {
 		std::cout << "\n\n" << dp_ptr->str(x);
 	}
 
+#ifdef LOG_REFINEMENT_LAYER_GRAPH
+	draw_layer_graph(greens);
+#endif
+
+
+}
+
+
+
+void QueryEngine::work_baseline() {
+	int round = 0;
+	while (true) {
+		++round;
+
+		std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
+
+		std::vector<int> Q = random_mode ? random_pick() : execute_one_round();
+
+	    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+	    std::cout << "Round " << round << " execution takes "
+	              << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()
+	              << " ms.\n";
+
+		if(Q.size() == 0) {
+			break;
+		}
+
+		std::chrono::steady_clock::time_point before_refine = std::chrono::steady_clock::now();
+
+		bool positive = dp_ptr->ask(Q);
+
+		std::cout << (positive ? "positive" : "negative")
+				<< " answer for Question: " << dp_ptr->nice_display(Q)
+				<< std::endl;
+
+		std::vector<DatalogProgram> dps;
+		int remove_ct = 0;
+
+		for (DatalogProgram& x : dp_ptr->Gs) {
+			bool res = test2(x, Q);
+
+			if (res == positive) {
+				dps.push_back(std::move(x));
+			} else {
+				++remove_ct;
+
+				// cancel vote
+				for (auto& it : vote_stats) {
+					it.second.erase(x.prog_id);
+				}
+			}
+		}
+
+		dp_ptr->Gs = std::move(dps);
+
+		std::cout << "removed_ct=" << remove_ct << ", refine_ct = " << 0
+				<< ", size: " << dp_ptr->Gs.size() << std::endl;
+
+		std::chrono::steady_clock::time_point after_refine = std::chrono::steady_clock::now();
+
+	    std::cout << "Round " << round << " refinement takes "
+	              << std::chrono::duration_cast<std::chrono::milliseconds>(after_refine - before_refine).count()
+	              << " ms.\n";
+
+	    std::cout << "Round " << round << " overall takes "
+	              << std::chrono::duration_cast<std::chrono::milliseconds>(after_refine - start).count()
+	              << " ms.\n";
+
+	}
+
+	std::cout << "Synthesized programs by baseline\n";
+	for(const DatalogProgram& x : dp_ptr->Gs) {
+		std::cout << "\n\n" << dp_ptr->str(x);
+	}
+
+}
+
+
+void QueryEngine::work() {
+
+	std::chrono::steady_clock::time_point s1 = std::chrono::steady_clock::now();
+	//std::cout << "will examine IDBTRs ...\n";
+	dp_ptr->examine_each_IDBTR(this);
+
+	//std::cout << "\n\nwill initGS ... \n";
+	dp_ptr->initGSX();
+
+	std::chrono::steady_clock::time_point s2 = std::chrono::steady_clock::now();
+
+	// Now we use the "at most twice" mechanism
+	// execute only once at the beginning
+	execute_one_round_helper(dp_ptr->Gs);
+	execute_one_round_helper(dp_ptr->Ss);
+
+
+	if(dp_ptr->enableX) {
+		work_baseline();
+	}
+	else{
+		work_refinement();
+	}
+
 	std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 
     std::cout << "end-s2: "
@@ -949,11 +1036,6 @@ void QueryEngine::work() {
 	std::cout << "end-s1: "
               << std::chrono::duration_cast<std::chrono::milliseconds>(end - s1).count()
               << " ms.\n";
-
-
-#ifdef LOG_REFINEMENT_LAYER_GRAPH
-	draw_layer_graph(greens);
-#endif
 
 }
 

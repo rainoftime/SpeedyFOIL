@@ -17,6 +17,12 @@ struct DPManager;
 struct DatalogProgram;
 struct IDBTR;
 
+enum ChooseOption {
+	GENERAL,
+	SPECIFIC,
+	ALL
+};
+
 // templates and rules for an IDB
 struct IDBTR {
 	TRelation rel;
@@ -53,7 +59,7 @@ struct IDBTR {
 	void init();
 	std::set<int> extractRules(const std::set<int>&) const;
 
-	std::vector<std::set<int>> chooseK(int k, bool general) const;
+	std::vector<std::set<int>> chooseK(int k, ChooseOption option) const;
 
 	std::set<int> generalize(int rule_index) const;
 	std::set<int> specialize(int rule_index) const;
@@ -112,6 +118,7 @@ struct DPManager {
 	int K = 1;
 	bool enableG = false;
 	bool enableS = false;
+	bool enableX = false;
 
 	const Matching& M;
 	std::vector<IDBTR> idbRules;
@@ -134,8 +141,8 @@ struct DPManager {
 
 	DPManager(const Matching& match) : M(match) {}
 
-	void init_helper(bool general);
-	void initGS();
+	void init_helper(ChooseOption option);
+	void initGSX();
 
 	void exploreCandidateRules();
 	void fillIDBValues(); // shoudl be called after exploreCandidateRules

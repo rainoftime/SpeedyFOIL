@@ -143,6 +143,9 @@ struct QueryEngine {
 
 	void work();
 
+	void work_refinement();
+	void work_baseline();
+
 };
 
 
