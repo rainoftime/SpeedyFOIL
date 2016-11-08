@@ -34,9 +34,10 @@ gcd = "gcd"
 ackermann = "ackermann"
 perm = "perm"
 
-#full_modref = "full_modref"
+full_modref = "full_modref"
+modref = "modref"
 
-pa_tasks = [downcast, polysite, escape, p50_modref,  andersen,]
+pa_tasks = [downcast, polysite, escape, modref,  andersen,]
 kd_tasks = [ancestor, abduce, animals, sgen, apisan, ]
 math_tasks = [ackermann, ncm, gcd,]
 graph_tasks = [ path,  scc, uf ]
@@ -44,10 +45,11 @@ list_tasks = [ member, sort, perm, reverse ]
 
 tasks = pa_tasks + math_tasks + graph_tasks + list_tasks + kd_tasks
 
-#tasks = [polysite]
+#tasks = [full_modref]
 
 
 def get_tmpl(t):
+    return T_ALL
     if t not in tasks:
         print t, "is not a valid tasks"
     if t in pa_tasks:
@@ -72,6 +74,7 @@ benchmarks = {
     polysite : { K : 1, DFILE : "polysite.d", },
     p25_modref   : { K : 2, DFILE : "p25_modref.d", },
     p50_modref   : { K : 2, DFILE : "p50_modref.d", },
+    full_modref   : { K : 2, DFILE : "full_modref.d", },
     apisan   : { K : 2, DFILE : "apisan.d", },
     andersen : { K : 4, DFILE : "aws_andersen.d", },
     escape : { K:2, DFILE : "escape.d"},
@@ -92,9 +95,31 @@ benchmarks = {
     member : { K:2, DFILE : "member.d", },
     sort :  { K:3, M : 4, DFILE : "sort.d", },
     perm : { K:2, DFILE : "perm.d", },
-    uf : { K:5, M : 4, DFILE :  "uf.d"},
+    uf : { K:4, M : 4, DFILE :  "uf.d"},
     reverse : { K:2,  DFILE: "list.d"},
 
     #full_modref : { K : 2, DFILE : "full_modref.d"},
 }
 
+alps_result = {
+    abduce : 12,
+    ackermann : 6,
+    ancestor : 17,
+    andersen : 17,
+    animals : 15,
+    apisan : 5,
+    downcast : 9,
+    escape : 11,
+    gcd : 6,
+    member : 1,
+    ncm : 6,
+    modref : 15,
+    path : 5,
+    perm : 6,
+    polysite : 7,
+    reverse : 7,
+    sgen : 10,
+    scc : 9,
+    sort : 10,
+    uf : 9,
+}
