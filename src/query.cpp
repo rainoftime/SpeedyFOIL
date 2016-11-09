@@ -334,7 +334,7 @@ std::vector<int> QueryEngine::random_pick_old(){
 	std::vector<int> res;
 
 	// test converge
-	if( test_converge_old() ) {
+	if( test_converge() ) {
 		return res;
 	}
 
@@ -870,7 +870,7 @@ void QueryEngine::work_refinement() {
 
 		std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
 
-		std::vector<int> Q = random_mode ? random_pick() : execute_one_round();
+		std::vector<int> Q = random_mode ? random_pick_old() : execute_one_round();
 
 	    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 	    std::cout << "Round " << round << " execution takes "
