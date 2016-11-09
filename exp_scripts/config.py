@@ -31,16 +31,17 @@ member = "member"
 scc = "scc"
 ncm = "ncm"
 gcd = "gcd"
+btree = "btree"
 ackermann = "ackermann"
 perm = "perm"
 
 full_modref = "full_modref"
 modref = "modref"
 
-pa_tasks = [downcast, polysite, escape, modref,  andersen,]
+pa_tasks = [downcast, polysite, escape, full_modref,  andersen,]
 kd_tasks = [ancestor, abduce, animals, sgen, apisan, ]
 math_tasks = [ackermann, ncm, gcd,]
-graph_tasks = [ path,  scc, uf ]
+graph_tasks = [ path,  scc, btree ] # uf
 list_tasks = [ member, sort, perm, reverse ]
 
 tasks = pa_tasks + math_tasks + graph_tasks + list_tasks + kd_tasks
@@ -96,6 +97,7 @@ benchmarks = {
     sort :  { K:3, M : 4, DFILE : "sort.d", },
     perm : { K:2, DFILE : "perm.d", },
     uf : { K:4, M : 4, DFILE :  "uf.d"},
+    btree : {K:2,  DFILE : "btree.d" }
     reverse : { K:2,  DFILE: "list.d"},
 
     #full_modref : { K : 2, DFILE : "full_modref.d"},
