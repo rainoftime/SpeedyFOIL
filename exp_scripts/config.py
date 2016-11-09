@@ -97,7 +97,7 @@ benchmarks = {
     sort :  { K:3, M : 4, DFILE : "sort.d", },
     perm : { K:2, DFILE : "perm.d", },
     uf : { K:4, M : 4, DFILE :  "uf.d"},
-    btree : {K:2,  DFILE : "btree.d" }
+    btree : {K:2,  DFILE : "btree.d" },
     reverse : { K:2,  DFILE: "list.d"},
 
     #full_modref : { K : 2, DFILE : "full_modref.d"},
