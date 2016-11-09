@@ -415,7 +415,7 @@ void DPManager::exploreCandidateRules() {
 			sum += Ms.size();
 
 			for(IClause& m : Ms) {
-				if(m.is_useless()) {
+				if( (enableG || enableS) && m.is_useless()) {
 					std::cout << "skip useless rule: " << m.toStr() << std::endl;
 					continue;
 				}
