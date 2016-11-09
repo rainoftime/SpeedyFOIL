@@ -265,7 +265,7 @@ bool QueryEngine::execute(const DatalogProgram& dp) {
 	const int before = warn_ct;
 	queryIDBs(fp);
 	const int after = warn_ct;
-	if(before != after && !random_mode ) {
+	if(before != after && !random_mode && !(dp_ptr->enableX)) {
 		fail_to_derive.insert( dp.prog_id );
 		//std::cout << "will cancel vote for program: \n" << dp_ptr->str(dp) << std::endl;
 		queryIDBs(fp, true);
