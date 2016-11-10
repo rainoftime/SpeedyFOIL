@@ -909,7 +909,7 @@ void QueryEngine::work_refinement() {
 					<< std::endl;
 
 			//eliminate_and_refine( dp_ptr->Gs, dp_ptr->Ss, true, and_qs, or_qs, Q);
-			eliminate_and_refine2(dp_ptr->Ss, dp_ptr->Gs, true, Q, neg_Qs);
+			eliminate_and_refine2(dp_ptr->Gs, dp_ptr->Ss, true, Q, neg_Qs);
 
 			std::cout << "after elimination & refinement, Gs.size= "
 					<< dp_ptr->Gs.size() << ", Ss.size= " << dp_ptr->Ss.size()
