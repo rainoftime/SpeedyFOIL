@@ -1,41 +1,40 @@
+# Vanilla makefile for distribution
+# You may need to set local c compiler options
 
-CC = /usr/bin/clang++
-SRC_DIR = src/
-OUT_DIR = _build/
+CFLAGS = -g
+ 
+.SUFFIXES: .o .c .l .ln
 
-CFLAGS = -g -std=c++11 -I /usr/local/include/ -L /usr/local/lib/
+.c.o:	Makefile defns.i extern.i
+#	lint -c $<
+	cc $(CFLAGS) -c $<
 
-SRC_Names = global main input output state literal evaluatelit search determinate order \
- 	join utility finddef interpret prune constants template matching datalog context query
+.c.ln:
+	lint -c $<
 
-SRC = $(addprefix $(SRC_DIR), $(addsuffix .cpp, $(SRC_Names)))
-OBJ = $(addprefix $(OUT_DIR), $(notdir $(SRC:.cpp=.o)))
+SRC =	global.c main.c input.c output.c state.c\
+	literal.c evaluatelit.c search.c determinate.c order.c\
+	join.c utility.c finddef.c interpret.c prune.c constants.c
 
+OBJ =	global.o main.o input.o output.o state.o\
+	literal.o evaluatelit.o search.o determinate.o order.o\
+	join.o utility.o finddef.o interpret.o prune.o constants.o
 
-foil: $(OBJ) Makefile
-	$(CC) $(CFLAGS) $(OBJ) -lz3 -o $@
-
-ifeq ($(MAKECMDGOALS),clean)
-# doing clean, so dont make deps.
-DEPS=
-else
-# doing build, so make deps.
-DEPS = $(addprefix $(OUT_DIR), $(notdir $(SRC:.cpp=.d)))
-
-$(OUT_DIR)%.d: $(SRC_DIR)%.cpp
-	$(CC) $(CFLAGS) -MM -MT '$(patsubst $(SRC_DIR)%.cpp,$(OUT_DIR)%.o,$<)' $< > $@
-	
--include $(DEPS)
-endif
+LINT =	global.ln main.ln input.ln output.ln state.ln\
+	literal.ln evaluatelit.ln search.ln determinate.ln order.ln\
+	join.ln utility.ln finddef.ln interpret.ln prune.ln constants.ln
 
 
-$(OUT_DIR)%.o: $(SRC_DIR)%.cpp
-	$(CC) $(CFLAGS) -c $< -o $@
+foil:   $(OBJ) Makefile
+#	lint -x $(LINT) -lm >,nittygritty
+	cc -o foil6 $(OBJ) -lm
 
 
-.PHONY: clean all
+foilgt:  $(SRC) defns.i Makefile
+	cat defns.i $(SRC) >.temp
+	egrep -v '"defns.i"|"extern.i"' .temp >foilgt.c
+	cc -O3 -o foil6 foilgt.c -lm
+	rm .temp foilgt.c
 
-all: foil
 
-clean:
-	rm $(OBJ)
+$(OBJ): defns.i extern.i
